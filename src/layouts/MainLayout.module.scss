@@ -1,0 +1,58 @@
+.layoutContainer {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+
+  .header {
+    background-color: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    padding: 1rem 0;
+
+    .headerContent {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 0 auto;
+      max-width: 80rem;
+      padding: 0 1rem;
+
+      .logo {
+        font-size: 1.5rem;
+        font-weight: 700;
+      }
+
+      .nav {
+        display: flex;
+        gap: 1rem;
+
+        .navLink {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+
+          &:hover {
+            text-decoration: underline;
+          }
+        }
+      }
+    }
+  }
+
+  .main {
+    flex: 1;
+    padding: 1rem;
+  }
+
+  .footer {
+    background-color: hsl(var(--secondary));
+    color: hsl(var(--secondary-foreground));
+    padding: 1rem 0;
+
+    .footerContent {
+      text-align: center;
+      margin: 0 auto;
+      max-width: 80rem;
+      padding: 0 1rem;
+    }
+  }
+} 

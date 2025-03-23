@@ -1,0 +1,20 @@
+.chatContainer {
+  max-width: 64rem;
+  margin: 0 auto;
+
+  .textareaContainer {
+    min-height: 150px;
+  }
+
+  .buttonContainer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+
+    .sendButton {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+  }
+} 

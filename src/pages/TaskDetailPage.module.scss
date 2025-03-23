@@ -1,0 +1,138 @@
+.detailContainer {
+  max-width: 64rem;
+  margin: 0 auto;
+
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+
+    .backButton {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .statusIndicator {
+      &.running {
+        color: hsl(217, 91%, 60%);
+        animation: pulse 2s infinite;
+      }
+
+      &.completed {
+        color: hsl(142, 71%, 45%);
+      }
+
+      &.error {
+        color: hsl(0, 84%, 60%);
+      }
+
+      &.pending {
+        color: hsl(0, 0%, 45%);
+      }
+    }
+  }
+
+  .eventsContainer {
+    margin-top: 1rem;
+
+    .emptyState {
+      text-align: center;
+      padding: 2rem;
+      color: hsl(var(--muted-foreground));
+    }
+
+    .eventsList {
+      .eventItem {
+        margin-bottom: 0.75rem;
+
+        .thinkEvent {
+          background-color: hsl(210, 100%, 97%);
+          padding: 0.75rem;
+          border-radius: 0.375rem;
+          
+          .eventTitle {
+            font-weight: 600;
+            color: hsl(210, 100%, 30%);
+            margin-bottom: 0.25rem;
+          }
+          
+          .eventContent {
+            white-space: pre-wrap;
+          }
+        }
+
+        .toolEvent {
+          background-color: hsl(270, 100%, 97%);
+          padding: 0.75rem;
+          border-radius: 0.375rem;
+          
+          .eventTitle {
+            font-weight: 600;
+            color: hsl(270, 76%, 40%);
+            margin-bottom: 0.25rem;
+          }
+          
+          .eventContent {
+            white-space: pre-wrap;
+          }
+        }
+
+        .actEvent {
+          background-color: hsl(142, 100%, 97%);
+          padding: 0.75rem;
+          border-radius: 0.375rem;
+          
+          .eventTitle {
+            font-weight: 600;
+            color: hsl(142, 76%, 36%);
+            margin-bottom: 0.25rem;
+          }
+          
+          .eventContent {
+            white-space: pre-wrap;
+          }
+        }
+
+        .resultEvent {
+          background-color: hsl(45, 100%, 96%);
+          padding: 0.75rem;
+          border-radius: 0.375rem;
+          
+          .eventTitle {
+            font-weight: 600;
+            color: hsl(45, 94%, 36%);
+            margin-bottom: 0.25rem;
+          }
+          
+          .eventContent {
+            white-space: pre-wrap;
+          }
+        }
+
+        .genericEvent {
+          background-color: hsl(0, 0%, 97%);
+          padding: 0.75rem;
+          border-radius: 0.375rem;
+          
+          .eventContent {
+            white-space: pre-wrap;
+          }
+        }
+      }
+    }
+  }
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 1;
+  }
+} 

@@ -1,0 +1,76 @@
+.tasksContainer {
+  margin-bottom: 1.5rem;
+
+  .pageTitle {
+    font-size: 1.875rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+  }
+
+  .emptyState {
+    text-align: center;
+    padding: 2rem;
+
+    .chatLink {
+      color: hsl(var(--primary));
+      margin-top: 1rem;
+      display: inline-block;
+      
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+
+  .tasksGrid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+
+    @media (min-width: 768px) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    @media (min-width: 1024px) {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .taskCard {
+      height: 100%;
+      cursor: pointer;
+      transition: border-color 0.2s;
+
+      &:hover {
+        border-color: hsl(var(--primary));
+      }
+
+      .cardHeader {
+        padding-bottom: 0.5rem;
+
+        .cardTitleContainer {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+
+          .cardTitle {
+            font-size: 1.125rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+
+          .linkIcon {
+            flex-shrink: 0;
+            color: #9CA3AF;
+          }
+        }
+      }
+
+      .dateInfo {
+        font-size: 0.875rem;
+        color: hsl(var(--muted-foreground));
+        margin-bottom: 0.5rem;
+      }
+    }
+  }
+} 
