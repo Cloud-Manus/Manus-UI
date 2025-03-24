@@ -1,0 +1,32 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+## Project Overview
+这是我为一个 AI Agent python 程序写的 web 前端项目。
+
+## Background Information
+我希望该前端项目能够让用户输入一个 prompt，调用 AI Agent，向用户展示当前任务运行状态，最终返回结果给用户。
+
+## 技术栈
+- ReactJS
+- Vite
+- Typescript
+- TailwindCSS
+- shadcn/ui
+- sass
+
+## 编写代码时
+
+
+## General Development Principles
+- DRY（Don't Repeat Yourself）
+- SOLID
+- KISS (Keep It Simple, Stupid)
+- YAGNI (You Ain't Gonna Need It)
+- POLA (Principle of Least Astonishment)
+- LoD (Law of Demeter)
+- SoC (Separation of Concerns)
+- High Cohesion, Loose Coupling
+
