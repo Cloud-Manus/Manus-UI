@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Define the base URL for the API
-const API_URL = 'http://localhost:8000'; // Update to match your backend URL
+const API_URL = 'http://localhost:5172'; // Update to match your backend URL
 
 // Create an axios instance
 const api = axios.create({
@@ -58,6 +58,17 @@ export const apiService = {
   // Function to create an EventSource for streaming task events
   createTaskEventSource: (taskId: string): EventSource => {
     return new EventSource(`${API_URL}/tasks/${taskId}/events`);
+  },
+
+  terminateTask: async (taskId: string): Promise<void> => {
+    const response = await api.post(`/tasks/${taskId}/terminate`);
+    return response.data;
+  },
+
+  // Download files
+  downloadFile: async (filePath: string): Promise<Blob> => {
+    const response = await api.get(`/download?file_path=${filePath}`, { responseType: 'blob' });
+    return response.data;
   },
 };
 

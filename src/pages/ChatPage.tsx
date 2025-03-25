@@ -1,7 +1,7 @@
-import { useState, useEffect, FormEvent } from 'react';
+import { useState, useEffect, FormEvent, useRef, ChangeEvent } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { SendIcon, ChevronLeftIcon, ChevronRightIcon, CodeIcon, FileTextIcon, LaptopIcon } from 'lucide-react';
+import { SendIcon, ChevronLeftIcon, ChevronRightIcon, CodeIcon, FileTextIcon, LaptopIcon, UploadIcon, DownloadIcon } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Textarea } from '../components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from '../components/ui/card';
@@ -24,6 +24,9 @@ const ChatPage = () => {
     web: '',
   });
   const [currentTaskId, setCurrentTaskId] = useState<string | null>(null);
+  const [recordedEvents, setRecordedEvents] = useState<TaskEvent[]>([]);
+  const [isReplaying, setIsReplaying] = useState<boolean>(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   
   const createTaskMutation = useMutation({
@@ -32,22 +35,30 @@ const ChatPage = () => {
       setCurrentTaskId(data.task_id);
       setEvents([]);
       setStatus('running');
+      // 清空之前的记录，准备记录新任务的事件
+      setRecordedEvents([]);
     },
   });
 
   useEffect(() => {
-    if (!currentTaskId) return;
+    if (!currentTaskId || isReplaying) return;
 
     // Set up SSE connection
     const eventSource = apiService.createTaskEventSource(currentTaskId);
     
     eventSource.onmessage = (event) => {
-      console.log('SSE event:', JSON.parse(event.data));
+      const eventData = JSON.parse(event.data) as TaskEvent;
+      console.log('SSE event:', eventData);
+      // 记录所有接收到的事件
+      setRecordedEvents(prev => [...prev, eventData]);
     };
 
     const handleEventWithData = (event: Event, type: string) => {
       if (event instanceof MessageEvent) {
         const data = JSON.parse(event.data) as TaskEvent;
+        // 记录事件
+        setRecordedEvents(prev => [...prev, { ...data, type }]);
+        
         if (data.result) {
           const newEvent: TaskStep = {
             step: data.step ?? 0,
@@ -86,6 +97,9 @@ const ChatPage = () => {
     eventSource.addEventListener('status', (event) => {
       if (event instanceof MessageEvent) {
         const data = JSON.parse(event.data) as TaskEvent;
+        // 记录状态事件
+        setRecordedEvents(prev => [...prev, { ...data, type: 'status' }]);
+        
         if (data.status) {
           setStatus(data.status);
           if (data.status === 'completed') {
@@ -96,15 +110,126 @@ const ChatPage = () => {
       }
     });
 
-    eventSource.addEventListener('complete', () => {
+    eventSource.addEventListener('complete', (event) => {
+      if (event instanceof MessageEvent) {
+        const data = JSON.parse(event.data) as TaskEvent;
+        // 记录完成事件
+        setRecordedEvents(prev => [...prev, { ...data, type: 'complete' }]);
+      }
+      
       setStatus('completed');
+      // 触发下载记录的事件
+      downloadRecordedEvents();
       eventSource.close();
     });
 
     return () => {
       eventSource.close();
     };
-  }, [currentTaskId, navigate]);
+  }, [currentTaskId, navigate, isReplaying]);
+
+  // 下载记录的事件为JSON文件
+  const downloadRecordedEvents = () => {
+    if (recordedEvents.length === 0) return;
+    
+    const jsonData = JSON.stringify(recordedEvents, null, 2);
+    const blob = new Blob([jsonData], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `task-${currentTaskId}-replay.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  // 处理上传JSON文件
+  const handleFileUpload = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const jsonData = JSON.parse(event.target?.result as string) as TaskEvent[];
+        // 清空当前状态，准备重放
+        setEvents([]);
+        setStatus('');
+        setVisualContent({ code: '', doc: '', web: '' });
+        setIsReplaying(true);
+        
+        // 开始重放事件
+        replayEvents(jsonData);
+      } catch (error) {
+        console.error('Error parsing JSON file:', error);
+        alert('无法解析JSON文件，请确保格式正确');
+      }
+    };
+    reader.readAsText(file);
+    
+    // 重置文件输入
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  // 重放记录的事件
+  const replayEvents = (events: TaskEvent[]) => {
+    let currentIndex = 0;
+    
+    const processNextEvent = () => {
+      if (currentIndex >= events.length) {
+        setIsReplaying(false);
+        return;
+      }
+      
+      const currentEvent = events[currentIndex];
+      
+      // 根据事件类型模拟处理
+      if (currentEvent.type === 'status' && currentEvent.status) {
+        setStatus(currentEvent.status);
+      } else if (['step', 'think', 'tool', 'act', 'result'].includes(currentEvent.type) && currentEvent.result) {
+        const newEvent: TaskStep = {
+          step: currentEvent.step ?? 0,
+          result: currentEvent.result,
+          type: currentEvent.type
+        };
+        
+        setEvents(prev => [...prev, newEvent]);
+        
+        // 更新可视化内容
+        if (currentEvent.type === 'tool' && currentEvent.result.includes('code:')) {
+          setVisualContent(prev => ({
+            ...prev,
+            code: currentEvent.result!.replace('code:', '')
+          }));
+        } else if (currentEvent.type === 'tool' && currentEvent.result.includes('document:')) {
+          setVisualContent(prev => ({
+            ...prev,
+            doc: currentEvent.result!.replace('document:', '')
+          }));
+        } else if (currentEvent.type === 'tool' && currentEvent.result.includes('web:')) {
+          setVisualContent(prev => ({
+            ...prev,
+            web: currentEvent.result!.replace('web:', '')
+          }));
+        }
+      } else if (currentEvent.type === 'complete') {
+        setStatus('completed');
+        setIsReplaying(false);
+        return;
+      }
+      
+      currentIndex++;
+      
+      // 添加延迟模拟实时效果，延迟时间可以根据需要调整
+      setTimeout(processNextEvent, 500);
+    };
+    
+    // 开始处理第一个事件
+    processNextEvent();
+  };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -132,6 +257,7 @@ const ChatPage = () => {
     return (
       <Badge className={variant}>
         {status === 'running' ? 'Processing' : status}
+        {isReplaying && ' (Replay)'}
       </Badge>
     );
   };
@@ -184,7 +310,37 @@ const ChatPage = () => {
             <CardHeader className="pb-3">
               <div className="flex justify-between items-center">
                 <CardTitle className="text-xl">Task Progress</CardTitle>
-                {getStatusBadge()}
+                <div className="flex items-center gap-2">
+                  {getStatusBadge()}
+                  {!isReplaying && recordedEvents.length > 0 && (
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={downloadRecordedEvents}
+                      className="flex items-center gap-1"
+                    >
+                      <DownloadIcon className="h-3 w-3" />
+                      保存记录
+                    </Button>
+                  )}
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileUpload}
+                    accept=".json"
+                    className="hidden"
+                  />
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => fileInputRef.current?.click()}
+                    className="flex items-center gap-1"
+                    disabled={isReplaying}
+                  >
+                    <UploadIcon className="h-3 w-3" />
+                    上传重放
+                  </Button>
+                </div>
               </div>
               <CardDescription>Real-time updates from AI agent</CardDescription>
               <Separator />
@@ -222,21 +378,22 @@ const ChatPage = () => {
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
                 className={styles.textareaContainer}
+                disabled={isReplaying}
               />
             </form>
           </CardContent>
           <CardFooter className="flex justify-between">
             <div className="text-sm text-muted-foreground">
-              {createTaskMutation.isPending ? 'Creating task...' : 'Type your message and press Enter'}
+              {createTaskMutation.isPending ? '创建任务中...' : isReplaying ? '正在重放任务...' : '输入消息并回车发送'}
             </div>
             <Button 
               type="submit" 
               onClick={handleSubmit}
-              disabled={createTaskMutation.isPending || !prompt.trim()}
+              disabled={createTaskMutation.isPending || !prompt.trim() || isReplaying}
               className={styles.sendButton}
             >
               <SendIcon className="mr-2 h-4 w-4" />
-              {createTaskMutation.isPending ? 'Sending...' : 'Send'}
+              {createTaskMutation.isPending ? '发送中...' : '发送'}
             </Button>
           </CardFooter>
         </Card>
