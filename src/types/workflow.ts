@@ -41,8 +41,19 @@ export type WorkflowChatEvent = WorkflowBaseEvent & {
   role: 'user' | 'assistant' | 'system';
 };
 
+export enum ToolName {
+  "BaseTool" = "BaseTool",
+  "Bash" = "Bash",
+  "BrowserUseTool" = "BrowserUseTool",
+  "Terminate" = "Terminate",
+  "StrReplaceEditor" = "StrReplaceEditor",
+  "ToolCollection" = "ToolCollection",
+  "CreateChatCompletion" = "CreateChatCompletion",
+  "PlanningTool" = "PlanningTool",
+}
+
 export type Tool = {
-  name: string;
+  name: ToolName;
   arguments: Record<string, unknown>;
   result?: string;
   screenshot?: string;
