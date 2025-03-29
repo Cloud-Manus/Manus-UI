@@ -1,3 +1,5 @@
+import { ToolName } from './tools/base';
+
 export enum EventType {
   "task_start" = "task_start", // 开始执行任务
   "task_complete" = "task_complete", // 完成执行任务
@@ -7,8 +9,7 @@ export enum EventType {
   "step" = "step",
   
   "tool_select" = "tool_select", // 选择工具
-  "tool_execute" = "tool_execute", // 执行工具
-  "tool_completed" = "tool_completed", // 工具结果
+  "tool_use" = "tool_use", // 执行工具
 
   "error" = "error",
 
@@ -25,7 +26,6 @@ export enum EventType {
   // "flow_step" = "flow_step",
   // "flow_complete" = "flow_complete",
   // "flow_error" = "flow_error",
-  
 }
 
 export type WorkflowBaseEvent = {
@@ -38,31 +38,15 @@ export type WorkflowBaseEvent = {
 
 export type WorkflowChatEvent = WorkflowBaseEvent & {
   type: EventType.chat;
-  role: 'user' | 'assistant' | 'system';
+  sender: 'user' | 'assistant' | 'system';
 };
-
-export enum ToolName {
-  "BaseTool" = "BaseTool",
-  "Bash" = "Bash",
-  "BrowserUseTool" = "BrowserUseTool",
-  "Terminate" = "Terminate",
-  "StrReplaceEditor" = "StrReplaceEditor",
-  "ToolCollection" = "ToolCollection",
-  "CreateChatCompletion" = "CreateChatCompletion",
-  "PlanningTool" = "PlanningTool",
-}
-
-export type Tool = {
-  name: ToolName;
-  arguments: Record<string, unknown>;
-  result?: string;
-  screenshot?: string;
-}
 
 export type WorkflowToolEvent = WorkflowBaseEvent & {
   type: EventType.tool_select | EventType.tool_execute | EventType.tool_completed;
-  toolsSelected?: string[];
-  details?: Tool;
+  toolsSelected?: ToolName[];
+  tool?: ToolName;
+  toolStatus?: "executing" | "success" | "fail";
+  toolDetails?: ToolDetails;
 };
 
 enum TaskState {
@@ -74,7 +58,7 @@ enum TaskState {
 
 export type WorkflowTaskEvent = WorkflowBaseEvent & {
   type: EventType.task_start | EventType.task_complete | EventType.task_state_change;
-  state: TaskState;
+  agentStatus: TaskState;
   request?: string;
   results?: string[];
   curStep?: number;
@@ -108,7 +92,6 @@ export type WorkflowEvent = WorkflowChatEvent | WorkflowToolEvent | WorkflowTask
 export type Workflow = {
   id: string;
   prompt: string;
-  title?: string;
   createdAt: number;
   finishedAt?: number;
   metaData?: {

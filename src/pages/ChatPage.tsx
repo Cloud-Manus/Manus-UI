@@ -1,33 +1,81 @@
 import { useState, useEffect, useCallback, FormEvent, useRef, ChangeEvent, DragEvent } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { SendIcon, ChevronLeftIcon, ChevronRightIcon, CodeIcon, FileTextIcon, LaptopIcon, UploadIcon, DownloadIcon, StopCircleIcon, PlayIcon, PauseIcon, SkipBackIcon, SkipForwardIcon } from 'lucide-react';
+import { SendIcon, ChevronLeftIcon, ChevronRightIcon, UploadIcon, DownloadIcon, StopCircleIcon, PlayIcon, PauseIcon, SkipBackIcon, SkipForwardIcon } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Textarea } from '../components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from '../components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { ScrollArea } from '../components/ui/scroll-area';
 import { Badge } from '../components/ui/badge';
 import { Separator } from '../components/ui/separator';
-import apiService, { TaskEvent, TaskStep } from '../services/api';
+import apiService from '../services/api';
 import styles from './ChatPage.module.scss';
+import ToolsWrapper from '../components/tools/ToolsWrapper';
+import { ToolName, ToolDetails } from '../types/tools/base';
+
+// 导入新的类型定义，但使用字符串字面量而不是枚举
+// 这样可以避免 TypeScript 类型推断中的一些问题
+type EventTypeString = 
+  | 'task_start' | 'task_complete' | 'task_state_change'
+  | 'thinking' | 'chat' | 'step'
+  | 'tool_select' | 'tool_execute' | 'tool_completed'
+  | 'tool_use'
+  | 'error' | 'update_token_count';
 
 // 定义重放状态类型
 type ReplayState = 'idle' | 'playing' | 'paused';
 
+// 定义一个简化的工作流事件类型，避免使用复杂的联合类型
+type SimpleWorkflowEvent = {
+  id: string;
+  type: EventTypeString;
+  step: number;
+  content: string;
+  timestamp: number;
+  // 工具事件相关字段
+  tool?: string;
+  toolStatus?: 'executing' | 'success' | 'failed';
+  detail?: Record<string, unknown>;
+  // 任务事件相关字段
+  agentStatus?: string;
+  request?: string;
+  results?: string[];
+  // 聊天事件相关字段
+  sender?: 'user' | 'assistant' | 'system';
+  // 错误事件相关字段
+  error?: string;
+};
+
+// 定义一个简化的工作流类型
+type SimpleWorkflow = {
+  id: string;
+  prompt: string;
+  createdAt: number;
+  finishedAt?: number;
+  events: SimpleWorkflowEvent[];
+};
+
+// 定义一个新的类型用于显示用途
+type DisplayStep = {
+  step: number;
+  content: string;
+  type: string;
+  toolName?: string;
+  toolStatus?: string;
+};
+
 const ChatPage = () => {
   const [prompt, setPrompt] = useState('');
   const [expanded, setExpanded] = useState(false);
-  const [events, setEvents] = useState<TaskStep[]>([]);
+  const [events, setEvents] = useState<DisplayStep[]>([]);
   const [status, setStatus] = useState<string>('');
-  const [activeVisualTab, setActiveVisualTab] = useState<string>('code');
   const [visualContent, setVisualContent] = useState<{ code: string; doc: string; web: string }>({
     code: '',
     doc: '',
     web: '',
   });
   const [currentTaskId, setCurrentTaskId] = useState<string | null>(null);
-  const [recordedEvents, setRecordedEvents] = useState<TaskEvent[]>([]);
+  const [recordedEvents, setRecordedEvents] = useState<SimpleWorkflowEvent[]>([]);
   const [isReplaying, setIsReplaying] = useState<boolean>(false);
   const [isTerminating, setIsTerminating] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -35,7 +83,7 @@ const ChatPage = () => {
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const dropZoneRef = useRef<HTMLDivElement>(null);
   const [replayState, setReplayState] = useState<ReplayState>('idle');
-  const [allReplaySteps, setAllReplaySteps] = useState<TaskStep[]>([]);
+  const [allReplaySteps, setAllReplaySteps] = useState<DisplayStep[]>([]);
   const [currentStepIndex, setCurrentStepIndex] = useState<number>(0);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [totalSteps, setTotalSteps] = useState<number>(0); // 保留此状态，但现在直接使用步骤数组长度
@@ -44,7 +92,13 @@ const ChatPage = () => {
   const replayStateRef = useRef<ReplayState>('idle');
   
   // 使用useRef存储步骤数组，避免状态更新延迟问题
-  const stepsArrayRef = useRef<TaskStep[]>([]);
+  const stepsArrayRef = useRef<DisplayStep[]>([]);
+  
+  // 用于存储原始的工作流数据
+  const currentWorkflow = useRef<SimpleWorkflow | null>(null);
+  
+  const [currentToolName, setCurrentToolName] = useState<ToolName | null>(null);
+  const [currentToolDetails, setCurrentToolDetails] = useState<ToolDetails | null>(null);
   
   // 同步replayState的变化到ref
   useEffect(() => {
@@ -55,6 +109,76 @@ const ChatPage = () => {
   useEffect(() => {
     stepsArrayRef.current = allReplaySteps;
   }, [allReplaySteps]);
+  
+  // 类型保护函数：检查是否是工具事件
+  const isToolEvent = (event: SimpleWorkflowEvent): boolean => {
+    return event.type === 'tool_select' || 
+           event.type === 'tool_execute' || 
+           event.type === 'tool_completed';
+  };
+
+  // 辅助函数：将 SimpleWorkflowEvent 转换为 DisplayStep
+  const convertToDisplayStep = (event: SimpleWorkflowEvent): DisplayStep => {
+    // 基本转换
+    const displayStep: DisplayStep = {
+      step: event.step,
+      content: event.content,
+      type: event.type
+    };
+    
+    // 根据事件类型添加额外信息
+    if (isToolEvent(event)) {
+      if (event.tool) {
+        displayStep.toolName = String(event.tool);
+      }
+      if (event.toolStatus) {
+        displayStep.toolStatus = event.toolStatus;
+      }
+    }
+    
+    return displayStep;
+  };
+  
+  // 辅助函数：更新可视化内容
+  const updateVisualFromEvents = (events: DisplayStep[] | SimpleWorkflowEvent[]) => {
+    // 重置可视化内容
+    const newVisualContent = { code: '', doc: '', web: '' };
+    
+    // 根据数组类型处理
+    if (events.length > 0) {
+      // 处理所有事件
+      events.forEach(event => {
+        // 检查是否是工具事件
+        if (event.type === 'tool_completed' || event.type === 'tool_execute') {
+          // 如果是 DisplayStep 类型，检查 toolName
+          if ('toolName' in event) {
+            // 处理 DisplayStep 类型的事件
+            // 通常这些事件已经处理过，内容已经放入 content 中
+            if (event.content.includes('code:')) {
+              newVisualContent.code = event.content.replace('code:', '');
+            } else if (event.content.includes('document:')) {
+              newVisualContent.doc = event.content.replace('document:', '');
+            } else if (event.content.includes('web:')) {
+              newVisualContent.web = event.content.replace('web:', '');
+            }
+          } else if ('detail' in event && event.detail) {
+            // 处理 SimpleWorkflowEvent 类型的事件
+            const detail = event.detail;
+            
+            if ('code' in detail && detail.code) {
+              newVisualContent.code = String(detail.code);
+            } else if ('document' in detail && detail.document) {
+              newVisualContent.doc = String(detail.document);
+            } else if ('web' in detail && detail.web) {
+              newVisualContent.web = String(detail.web);
+            }
+          }
+        }
+      });
+    }
+    
+    setVisualContent(newVisualContent);
+  };
   
   // 添加重置函数
   const resetChat = () => {
@@ -70,6 +194,8 @@ const ChatPage = () => {
     stepsArrayRef.current = [];
     setCurrentStepIndex(0);
     setTotalSteps(0);
+    setCurrentToolName(null);
+    setCurrentToolDetails(null);
   };
   
   // 添加终止任务的处理函数
@@ -104,87 +230,181 @@ const ChatPage = () => {
     // Set up SSE connection
     const eventSource = apiService.createTaskEventSource(currentTaskId);
     
-    const handleEventWithData = (event: Event, type: string) => {
-      if (event instanceof MessageEvent) {
-        const data = JSON.parse(event.data) as TaskEvent;
-        // 记录事件
-        setRecordedEvents(prev => [...prev, { ...data, type }]);
+    // 辅助函数：处理从 SSE 接收的事件
+    const handleWorkflowEvent = (event: MessageEvent) => {
+      try {
+        // 将事件解析为 SimpleWorkflowEvent
+        const data = JSON.parse(event.data) as SimpleWorkflowEvent;
         
-        if (data.result) {
-          const newEvent: TaskStep = {
-            step: data.step ?? 0,
-            result: data.result,
-            type
-          };
-          setEvents(prev => [...prev, newEvent]);
-          
-          // Update visual content based on event type
-          if (type === 'tool' && data.result && data.result.includes('code:')) {
-            setVisualContent(prev => ({
-              ...prev,
-              code: data.result!.replace('code:', '')
-            }));
-          } else if (type === 'tool' && data.result && data.result.includes('document:')) {
-            setVisualContent(prev => ({
-              ...prev,
-              doc: data.result!.replace('document:', '')
-            }));
-          } else if (type === 'tool' && data.result && data.result.includes('web:')) {
-            setVisualContent(prev => ({
-              ...prev,
-              web: data.result!.replace('web:', '')
-            }));
+        // 记录事件
+        setRecordedEvents(prev => [...prev, data]);
+        
+        // 根据事件类型进行处理
+        switch (data.type) {
+          case 'task_start':
+          case 'task_state_change':
+          case 'task_complete':
+            // 更新任务状态
+            if (data.agentStatus) {
+              const statusMap: Record<string, string> = {
+                'IDLE': 'idle',
+                'RUNNING': 'running',
+                'FINISHED': 'completed',
+                'ERROR': 'failed'
+              };
+              setStatus(statusMap[data.agentStatus] || data.agentStatus);
+              
+              // 如果任务完成或出错，重置终止中状态
+              if (data.agentStatus === 'FINISHED' || data.agentStatus === 'ERROR') {
+                setIsTerminating(false);
+              }
+            }
+            break;
+            
+          case 'tool_use':
+            // 处理工具使用事件，更新当前工具信息
+            if (data.tool && data.detail) {
+              const toolName = data.tool as ToolName;
+              // 将详情转换为 ToolDetails 格式
+              const toolDetails: ToolDetails = {};
+              
+              // 根据工具类型设置对应属性
+              switch (toolName) {
+                case ToolName.StrReplaceEditor:
+                  toolDetails.strReplaceEditor = data.detail as any;
+                  break;
+                case ToolName.BrowserUseTool:
+                  toolDetails.browserUse = data.detail as any;
+                  break;
+                case ToolName.Bash:
+                  toolDetails.bash = data.detail as any;
+                  break;
+                case ToolName.Terminal:
+                  toolDetails.terminal = data.detail as any;
+                  break;
+                case ToolName.WebSearch:
+                  toolDetails.webSearch = data.detail as any;
+                  break;
+                case ToolName.CreateChatCompletion:
+                  toolDetails.createChatCompletion = data.detail as any;
+                  break;
+                case ToolName.PlanningTool:
+                  toolDetails.planning = data.detail as any;
+                  break;
+                case ToolName.Terminate:
+                  toolDetails.terminate = data.detail as any;
+                  break;
+                default:
+                  console.warn('Unknown tool type:', toolName);
+              }
+              
+              // 更新工具状态
+              setCurrentToolName(toolName);
+              setCurrentToolDetails(toolDetails);
+              
+              // 创建新的展示步骤
+              const newStep: DisplayStep = {
+                step: data.step,
+                content: data.content,
+                type: data.type,
+                toolName: data.tool
+              };
+              
+              // 更新事件列表
+              setEvents(prev => [...prev, newStep]);
+            }
+            break;
+            
+          case 'thinking':
+          case 'step':
+          case 'chat':
+          case 'tool_select':
+          case 'tool_execute':
+          case 'tool_completed': {
+            // 创建新的展示步骤
+            const newStep: DisplayStep = {
+              step: data.step,
+              content: data.content,
+              type: data.type
+            };
+            
+            // 对于工具事件，添加额外信息
+            if (isToolEvent(data)) {
+              newStep.toolName = data.tool;
+              newStep.toolStatus = data.toolStatus;
+            }
+            
+            // 更新事件列表
+            setEvents(prev => [...prev, newStep]);
+            
+            // 更新可视化内容
+            if (data.type === 'tool_completed' && data.detail) {
+              // 更新对应类型的可视化内容
+              if (data.detail.code) {
+                setVisualContent(prev => ({
+                  ...prev,
+                  code: String(data.detail!.code)
+                }));
+              } else if (data.detail.document) {
+                setVisualContent(prev => ({
+                  ...prev,
+                  doc: String(data.detail!.document)
+                }));
+              } else if (data.detail.web) {
+                setVisualContent(prev => ({
+                  ...prev,
+                  web: String(data.detail!.web)
+                }));
+              }
+            }
+            break;
           }
+            
+          case 'error':
+            // 处理错误事件
+            setStatus('failed');
+            console.error('Workflow error:', data.error);
+            setIsTerminating(false);
+            break;
+            
+          case 'update_token_count':
+            // 处理 token 计数更新，如需要
+            break;
         }
+      } catch (error) {
+        console.error('Error processing SSE event:', error);
       }
     };
-
-    eventSource.addEventListener('step', (e) => handleEventWithData(e, 'step'));
-    eventSource.addEventListener('think', (e) => handleEventWithData(e, 'think'));
-    eventSource.addEventListener('tool', (e) => handleEventWithData(e, 'tool'));
-    eventSource.addEventListener('act', (e) => handleEventWithData(e, 'act'));
-    eventSource.addEventListener('result', (e) => handleEventWithData(e, 'result'));
-
-    eventSource.addEventListener('status', (event) => {
-      if (event instanceof MessageEvent) {
-        const data = JSON.parse(event.data) as TaskEvent;
-        
-        // 去重处理：移除之前的所有status事件，只保留最新的
-        setRecordedEvents(prev => {
-          // 过滤掉之前所有的status事件
-          const filteredEvents = prev.filter(e => e.type !== 'status');
-          // 添加最新的status事件（保留完整信息）
-          return [...filteredEvents, { ...data, type: 'status' }];
-        });
-        
-        if (data.status) {
-          setStatus(data.status);
-          // 如果收到终止或错误状态，重置终止中状态
-          if (data.status === 'terminated' || data.status === 'failed' || data.status === 'completed') {
-            setIsTerminating(false);
-          }
+    
+    // 设置 SSE 事件监听器
+    eventSource.onmessage = handleWorkflowEvent;
+    
+    // 兼容性处理：监听特定事件类型
+    eventSource.addEventListener('message', handleWorkflowEvent);
+    
+    // 监听完成事件单独处理
+    eventSource.addEventListener('complete', (e) => {
+      if (e instanceof MessageEvent) {
+        try {
+          const data = JSON.parse(e.data) as SimpleWorkflowEvent;
+          // 记录事件
+          setRecordedEvents(prev => [...prev, data]);
+          
+          // 设置状态为完成
+          setStatus('completed');
+          
+          // 触发下载记录
+          setTimeout(() => {
+            downloadRecordedEvents();
+          }, 500);
+        } catch (error) {
+          console.error('Error processing complete event:', error);
         }
       }
-    });
-
-    eventSource.addEventListener('complete', (event) => {
-      if (event instanceof MessageEvent) {
-        const data = JSON.parse(event.data) as TaskEvent;
-        // 记录完成事件
-        setRecordedEvents(prev => [...prev, { ...data, type: 'complete' }]);
-      }
-      
-      setStatus('completed');
-      
-      // 使用setTimeout延迟下载，确保状态更新完成后再触发下载
-      setTimeout(() => {
-        // 触发下载记录的事件
-        downloadRecordedEvents();
-      }, 500);
-      
       eventSource.close();
     });
-
+    
+    // 清理函数
     return () => {
       eventSource.close();
     };
@@ -194,46 +414,21 @@ const ChatPage = () => {
   const downloadRecordedEvents = () => {
     if (recordedEvents.length === 0) return;
     
-    // 找出最后一个status类型的消息，它包含了所有信息
-    const lastStatusEvent = recordedEvents.filter(event => event.type === 'status').pop();
+    // 创建一个完整的 Workflow 对象
+    const workflow: SimpleWorkflow = {
+      id: currentTaskId || 'unknown',
+      prompt: prompt,
+      createdAt: Date.now(),
+      events: recordedEvents
+    };
     
-    if (!lastStatusEvent) {
-      console.error('未找到status类型的消息，无法下载完整记录');
-      alert('无法下载：记录中缺少必要的状态信息');
-      return;
-    }
-    
-    // 确保status事件中的steps数组是完整的
-    if (!lastStatusEvent.steps || lastStatusEvent.steps.length === 0) {
-      console.warn('Status事件中没有步骤信息，尝试从其他事件构建');
-      // 从其他记录的事件中构建steps数组
-      const steps = recordedEvents
-        .filter(event => ['step', 'think', 'tool', 'act', 'result'].includes(event.type || ''))
-        .map(event => ({
-          step: event.step || 0,
-          result: event.result || '',
-          type: event.type || 'step'
-        }));
-      
-      if (steps.length > 0) {
-        lastStatusEvent.steps = steps;
-      } else {
-        console.error('没有找到任何可用的步骤信息');
-        alert('无法下载：记录中缺少步骤信息');
-        return;
-      }
-    }
-    
-    // 只保存最后一个status消息，它已经包含了所有信息
-    const eventsToDownload = [lastStatusEvent];
-    
-    console.log('准备下载的数据:', eventsToDownload);
-    const jsonData = JSON.stringify(eventsToDownload, null, 2);
+    console.log('准备下载的数据:', workflow);
+    const jsonData = JSON.stringify(workflow, null, 2);
     const blob = new Blob([jsonData], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `task-${currentTaskId}-replay.json`;
+    link.download = `workflow-${workflow.id}.json`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -289,93 +484,56 @@ const ChatPage = () => {
       try {
         const content = event.target?.result as string;
         console.log('文件内容长度:', content.length);
-        const jsonData = JSON.parse(content) as TaskEvent[];
-        console.log('解析后的数据:', jsonData);
         
-        // 调试：输出更详细的步骤信息
-        jsonData.forEach((event, index) => {
-          if (event.type === 'status' && event.steps) {
-            console.log(`事件 ${index + 1}: ${event.type}, 状态: ${event.status}, 包含 ${event.steps.length} 个步骤`);
-            // 打印前5个步骤的信息
-            event.steps.slice(0, 5).forEach((step, i) => {
-              console.log(`  步骤 ${i + 1}/${event.steps?.length}: 类型=${step.type}, 结果长度=${step.result?.length || 0}`);
-            });
-            if (event.steps.length > 5) {
-              console.log(`  ...以及更多 ${event.steps.length - 5} 个步骤`);
-            }
-          } else {
-            console.log(`事件 ${index + 1}: ${event.type}`);
-          }
-        });
+        // 尝试将内容解析为 Workflow 对象
+        const workflow = JSON.parse(content) as SimpleWorkflow;
+        console.log('解析后的工作流:', workflow);
         
         // 验证数据格式
-        if (!Array.isArray(jsonData)) {
-          alert('文件格式错误：数据不是数组');
+        if (!workflow.events || !Array.isArray(workflow.events)) {
+          alert('文件格式错误：缺少有效的事件数组');
           return;
         }
         
-        if (jsonData.length === 0) {
+        if (workflow.events.length === 0) {
           alert('文件内容为空，没有可重放的事件');
           return;
         }
         
-        // 检查是否包含必要的信息
-        const hasValidData = jsonData.some(event => {
-          if (event.type === 'status') {
-            // 如果是status事件，检查它是否有steps
-            if (event.steps && event.steps.length > 0) {
-              return true;
-            }
-            // 如果没有steps，但有其他必要信息，也认为是有效的
-            return !!event.status;
-          }
-          // 其他类型的事件，只要有type和result就认为有效
-          return event.type && (['step', 'think', 'tool', 'act', 'result'].includes(event.type) && !!event.result);
-        });
-        
-        if (!hasValidData) {
-          alert('文件内容不包含可重放的有效数据');
-          return;
-        }
-        
-        // 如果status事件没有steps，尝试从其他事件构建
-        const statusEvent = jsonData.find(event => event.type === 'status');
-        if (statusEvent && (!statusEvent.steps || statusEvent.steps.length === 0)) {
-          console.log('Status事件中没有步骤信息，尝试构建');
-          
-          // 从其他事件构建steps
-          const steps = jsonData
-            .filter(event => event.type && ['step', 'think', 'tool', 'act', 'result'].includes(event.type) && event.result)
-            .map(event => ({
-              step: event.step || 0,
-              result: event.result || '',
-              type: event.type
-            }));
-          
-          if (steps.length > 0) {
-            console.log(`从其他事件构建了 ${steps.length} 个步骤`);
-            statusEvent.steps = steps;
-          }
-        }
-        
-        // 清空当前状态，准备重放
-        setEvents([]);
-        setStatus('');
-        setVisualContent({ code: '', doc: '', web: '' });
-        setIsReplaying(true);
-        
         // 重置重放控制状态
         setReplayState('idle');
         replayStateRef.current = 'idle';
-        setAllReplaySteps([]);
+        
+        // 清空当前状态
+        setCurrentTaskId(null);
+        setEvents([]);
+        // 不要清空status状态，让startReplay来设置它
+        setVisualContent({ code: '', doc: '', web: '' });
+        
+        // 设置 prompt 值，这样用户可以看到原始请求
+        setPrompt(workflow.prompt || '');
+        
+        // 保存工作流数据
+        currentWorkflow.current = workflow;
+        
+        // 提取所有显示步骤
+        const displaySteps = workflow.events
+          .filter(event => [
+            'thinking', 'step', 'chat', 
+            'tool_select', 'tool_execute', 'tool_completed'
+          ].includes(event.type))
+          .map(convertToDisplayStep);
+        
+        setAllReplaySteps(displaySteps);
+        stepsArrayRef.current = displaySteps;
+        setTotalSteps(displaySteps.length);
         setCurrentStepIndex(0);
-        setTotalSteps(0);
         
         // 显示上传成功提示
         alert(`成功加载 ${file.name}，即将开始重放`);
         
         // 开始重放事件
-        replayEvents(jsonData);
+        startReplay(workflow.events);
       } catch (error) {
         console.error('解析JSON文件错误:', error);
         alert(`无法解析JSON文件：${error instanceof Error ? error.message : '未知错误'}`);
@@ -391,107 +549,54 @@ const ChatPage = () => {
   };
 
   // 重放记录的事件
-  const replayEvents = (events: TaskEvent[]) => {
+  const startReplay = (events: SimpleWorkflowEvent[]) => {
     console.log('开始重放事件，事件数量:', events.length);
     
-    // 处理函数：从status事件中提取步骤信息并准备重放
-    const prepareReplayFromStatusEvent = (statusEvent: TaskEvent) => {
-      console.log('处理status事件:', statusEvent);
-      
-      // 设置状态
-      setStatus(statusEvent.status || '');
-      
-      // 提取步骤信息
-      if (statusEvent.steps && statusEvent.steps.length > 0) {
-        console.log(`从status事件中提取${statusEvent.steps.length}个步骤`);
-        
-        try {
-          // 确保步骤数据格式正确
-          const steps = statusEvent.steps.map(step => ({
-            step: step.step || 0,
-            result: step.result || '',
-            type: step.type || 'step'
-          }));
-          
-          console.log('处理后的步骤数据:', steps.length, '条，第一条:', steps[0]);
-          
-          // 保存所有步骤用于控制
-          setAllReplaySteps(steps);
-          // 同时更新ref中的步骤数组，避免状态更新延迟问题
-          stepsArrayRef.current = steps;
-          const stepsCount = steps.length;
-          setTotalSteps(stepsCount);
-          
-          // 清空当前显示
-          setEvents([]);
-          setCurrentStepIndex(0);
-          
-          // 先设置重放状态为播放
-          setReplayState('playing');
-          replayStateRef.current = 'playing';
-          
-          // 显示第一个步骤 - 直接传递步骤数组
-          console.log('准备显示第一个步骤，步骤总数:', stepsCount);
-          handleSeekToStep(0, steps);
-          
-          // 直接开始播放
-          playFromCurrentStep(steps, 0);
-        } catch (error) {
-          console.error('步骤数据处理错误:', error);
-          alert('重放准备过程中出错，请检查数据格式');
-          setIsReplaying(false);
-          setReplayState('idle');
-        }
-      } else {
-        console.warn('Status事件中没有步骤信息');
-        alert('无法重放：状态事件中没有步骤信息');
-        setIsReplaying(false);
-      }
-    };
+    // 设置重放状态
+    setIsReplaying(true);
     
-    // 检查是否有status事件
-    const statusEvent = events.find(event => event.type === 'status');
-    if (statusEvent) {
-      prepareReplayFromStatusEvent(statusEvent);
-      return;
+    // 确保设置一个有效的状态，即使文件中没有状态事件
+    if (!status) {
+      setStatus('replaying');
     }
     
-    // 如果没有找到status事件，尝试从其他事件构建步骤
-    console.log('未找到status事件，从事件列表构建步骤');
-    const steps = events
-      .filter(event => event.type && ['step', 'think', 'tool', 'act', 'result'].includes(event.type))
-      .map(event => ({
-        step: event.step || 0,
-        result: event.result || '',
-        type: event.type || 'step'
-      }));
+    // 提取显示步骤
+    const displaySteps = events
+      .filter(event => [
+        'thinking', 'step', 'chat', 
+        'tool_select', 'tool_execute', 'tool_completed',
+        'tool_use' // 添加 tool_use 类型
+      ].includes(event.type))
+      .map(convertToDisplayStep);
     
-    if (steps.length > 0) {
+    if (displaySteps.length > 0) {
       // 保存所有步骤用于控制
-      setAllReplaySteps(steps);
-      // 同时更新ref中的步骤数组，避免状态更新延迟问题
-      stepsArrayRef.current = steps;
-      const stepsCount = steps.length;
-      setTotalSteps(stepsCount);
+      setAllReplaySteps(displaySteps);
+      stepsArrayRef.current = displaySteps;
+      setTotalSteps(displaySteps.length);
       
       // 清空当前显示
       setEvents([]);
       setCurrentStepIndex(0);
       
+      // 重置工具状态
+      setCurrentToolName(null);
+      setCurrentToolDetails(null);
+      
       // 先设置重放状态为播放
       setReplayState('playing');
       replayStateRef.current = 'playing';
       
-      // 显示第一个步骤 - 直接传递步骤数组
-      console.log('准备显示第一个步骤，步骤总数:', stepsCount);
-      handleSeekToStep(0, steps);
+      // 显示第一个步骤
+      handleSeekToStep(0, displaySteps);
       
-      // 直接开始播放
-      playFromCurrentStep(steps, 0);
+      // 开始播放
+      playFromCurrentStep(displaySteps, 0);
     } else {
       console.error('没有找到可用的步骤信息');
       alert('无法重放：未找到步骤信息');
       setIsReplaying(false);
+      setStatus('');
     }
   };
 
@@ -535,40 +640,44 @@ const ChatPage = () => {
   };
 
   // Helper function to render different event types
-  const renderEvent = (event: TaskStep) => {
+  const renderEvent = (event: DisplayStep) => {
     switch (event.type) {
-      case 'think':
+      case 'thinking':
         return (
           <div className={styles.thinkEvent}>
             <div className={styles.eventTitle}>Thinking:</div>
-            <div className={styles.eventContent}>{event.result}</div>
+            <div className={styles.eventContent}>{event.content}</div>
           </div>
         );
-      case 'tool':
+      case 'tool_select':
+      case 'tool_execute':
+      case 'tool_completed':
         return (
           <div className={styles.toolEvent}>
-            <div className={styles.eventTitle}>Using Tool:</div>
-            <div className={styles.eventContent}>{event.result}</div>
+            <div className={styles.eventTitle}>
+              Using Tool: {event.toolName && <span className={styles.toolName}>{event.toolName}</span>}
+            </div>
+            <div className={styles.eventContent}>{event.content}</div>
           </div>
         );
-      case 'act':
+      case 'chat':
         return (
           <div className={styles.actEvent}>
-            <div className={styles.eventTitle}>Action:</div>
-            <div className={styles.eventContent}>{event.result}</div>
+            <div className={styles.eventTitle}>Chat:</div>
+            <div className={styles.eventContent}>{event.content}</div>
           </div>
         );
-      case 'result':
+      case 'step':
         return (
           <div className={styles.resultEvent}>
-            <div className={styles.eventTitle}>Result:</div>
-            <div className={styles.eventContent}>{event.result}</div>
+            <div className={styles.eventTitle}>Step:</div>
+            <div className={styles.eventContent}>{event.content}</div>
           </div>
         );
       default:
         return (
           <div className={styles.genericEvent}>
-            <div className={styles.eventContent}>{event.result}</div>
+            <div className={styles.eventContent}>{event.content}</div>
           </div>
         );
     }
@@ -617,29 +726,8 @@ const ChatPage = () => {
     }
   };
 
-  // 更新可视化内容
-  const updateVisualContent = useCallback((steps: TaskStep[]) => {
-    // 重置可视化内容
-    const newVisualContent = { code: '', doc: '', web: '' };
-    
-    // 逐步更新可视化内容
-    steps.forEach(step => {
-      if (step.type === 'tool' && step.result) {
-        if (step.result.includes('code:')) {
-          newVisualContent.code = step.result.replace('code:', '');
-        } else if (step.result.includes('document:')) {
-          newVisualContent.doc = step.result.replace('document:', '');
-        } else if (step.result.includes('web:')) {
-          newVisualContent.web = step.result.replace('web:', '');
-        }
-      }
-    });
-    
-    setVisualContent(newVisualContent);
-  }, []);
-  
   // 跳转到指定步骤
-  const handleSeekToStep = useCallback((stepIndex: number, stepsArray?: TaskStep[]) => {
+  const handleSeekToStep = useCallback((stepIndex: number, stepsArray?: DisplayStep[]) => {
     // 使用传入的步骤数组或状态中的数组
     const stepsToUse = stepsArray || allReplaySteps;
     
@@ -662,16 +750,67 @@ const ChatPage = () => {
     
     // 显示到当前步骤为止的所有步骤
     const visibleSteps = stepsToUse.slice(0, stepIndex + 1);
-    setEvents(visibleSteps);
+    
+    // 检查最新步骤是否为工具使用事件
+    const latestStep = stepsToUse[stepIndex];
+    if (latestStep && latestStep.type === 'tool_use' && latestStep.toolName && currentWorkflow.current) {
+      // 查找原始事件以获取完整的工具详情
+      const originalEvent = currentWorkflow.current.events.find(
+        e => e.type === 'tool_use' && e.step === latestStep.step
+      );
+      
+      if (originalEvent && originalEvent.tool && originalEvent.detail) {
+        // 更新工具状态
+        const toolName = originalEvent.tool as ToolName;
+        const toolDetails: ToolDetails = {};
+        
+        // 根据工具类型设置对应属性
+        switch (toolName) {
+          case ToolName.StrReplaceEditor:
+            toolDetails.strReplaceEditor = originalEvent.detail as any;
+            break;
+          case ToolName.BrowserUseTool:
+            toolDetails.browserUse = originalEvent.detail as any;
+            break;
+          case ToolName.Bash:
+            toolDetails.bash = originalEvent.detail as any;
+            break;
+          case ToolName.Terminal:
+            toolDetails.terminal = originalEvent.detail as any;
+            break;
+          case ToolName.WebSearch:
+            toolDetails.webSearch = originalEvent.detail as any;
+            break;
+          case ToolName.CreateChatCompletion:
+            toolDetails.createChatCompletion = originalEvent.detail as any;
+            break;
+          case ToolName.PlanningTool:
+            toolDetails.planning = originalEvent.detail as any;
+            break;
+          case ToolName.Terminate:
+            toolDetails.terminate = originalEvent.detail as any;
+            break;
+          default:
+            console.warn('Unknown tool type:', toolName);
+        }
+        
+        setCurrentToolName(toolName);
+        setCurrentToolDetails(toolDetails);
+      }
+    }
+    
+    // 强制重新渲染事件列表
+    console.log(`更新事件列表，显示 ${visibleSteps.length} 个事件，当前索引: ${stepIndex}`);
+    setEvents([...visibleSteps]); // 使用新数组引用强制更新
     
     // 更新可视化内容
-    updateVisualContent(visibleSteps);
+    updateVisualFromEvents(visibleSteps);
     
     console.log('已跳转到步骤:', stepIndex, '显示步骤数:', visibleSteps.length);
-  }, [allReplaySteps, updateVisualContent]);
+  }, [allReplaySteps, currentWorkflow]);
   
   // 从当前步骤开始播放
-  const playFromCurrentStep = useCallback((stepsArray?: TaskStep[], currentIndex?: number) => {
+  const playFromCurrentStep = useCallback((stepsArray?: DisplayStep[], currentIndex?: number) => {
     // 使用传入的步骤数组或状态中的数组
     const stepsToUse = stepsArray || allReplaySteps;
     
@@ -713,14 +852,16 @@ const ChatPage = () => {
       return;
     }
     
+    // 更新步骤索引
     setCurrentStepIndex(nextStepIndex);
     
-    // 更新显示的步骤
+    // 更新显示的步骤，强制重新渲染
     const visibleSteps = stepsToUse.slice(0, nextStepIndex + 1);
-    setEvents(visibleSteps);
+    console.log(`播放更新事件列表，显示 ${visibleSteps.length} 个事件，当前索引: ${nextStepIndex}`);
+    setEvents([...visibleSteps]);
     
     // 更新可视化内容
-    updateVisualContent(visibleSteps);
+    updateVisualFromEvents(visibleSteps);
     
     console.log('播放到步骤:', nextStepIndex, '剩余步骤:', stepsToUse.length - nextStepIndex - 1);
     
@@ -740,7 +881,7 @@ const ChatPage = () => {
       setReplayState('paused');
       replayStateRef.current = 'paused';
     }
-  }, [allReplaySteps, currentStepIndex, updateVisualContent]);
+  }, [allReplaySteps, currentStepIndex]);
   
   // 停止重放
   const handleStopReplay = () => {
@@ -754,12 +895,14 @@ const ChatPage = () => {
     setEvents([]);
     setStatus('');
     setVisualContent({ code: '', doc: '', web: '' });
+    setCurrentToolName(null);
+    setCurrentToolDetails(null);
   };
 
   return (
     <div className={`${styles.chatContainer} ${expanded ? styles.expanded : ''}`}>
       <div className={styles.mainSection}>
-        {status && events.length > 0 && (
+        {((status && events.length > 0) || isReplaying) && (
           <Card className={styles.eventsCard}>
             <CardHeader className="pb-3">
               <div className="flex justify-between items-center">
@@ -814,11 +957,13 @@ const ChatPage = () => {
               <ScrollArea className="h-[300px] px-4">
                 <div className={styles.eventsContainer}>
                   {events.length === 0 ? (
-                    <div className={styles.emptyState}>Waiting for task to start...</div>
+                    <div className={styles.emptyState}>
+                      {isReplaying ? 'Loading replay events...' : 'Waiting for task to start...'}
+                    </div>
                   ) : (
                     <div className={styles.eventsList}>
                       {events.map((event, index) => (
-                        <div key={index} className={styles.eventItem}>
+                        <div key={`${event.type}-${index}-${event.step}`} className={styles.eventItem}>
                           {renderEvent(event)}
                         </div>
                       ))}
@@ -942,6 +1087,7 @@ const ChatPage = () => {
                 onChange={(e) => setPrompt(e.target.value)}
                 className={styles.textareaContainer}
                 disabled={isReplaying || (status === 'completed' && !!currentTaskId)}
+                readOnly={isReplaying}
               />
             </form>
           </CardContent>
@@ -990,49 +1136,18 @@ const ChatPage = () => {
               <Separator />
             </CardHeader>
             <CardContent className="p-0">
-              <Tabs defaultValue="code" value={activeVisualTab} onValueChange={setActiveVisualTab} className="w-full">
-                <TabsList className="grid grid-cols-3 mb-4 mx-4 mt-2">
-                  <TabsTrigger value="code" className="flex items-center gap-2">
-                    <CodeIcon className="h-4 w-4" />
-                    Code
-                  </TabsTrigger>
-                  <TabsTrigger value="doc" className="flex items-center gap-2">
-                    <FileTextIcon className="h-4 w-4" />
-                    Document
-                  </TabsTrigger>
-                  <TabsTrigger value="web" className="flex items-center gap-2">
-                    <LaptopIcon className="h-4 w-4" />
-                    Web
-                  </TabsTrigger>
-                </TabsList>
-                <ScrollArea className="h-[calc(100vh-350px)] px-4">
-                  <TabsContent value="code" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
-                    <div className={styles.codeViewer}>
-                      <pre className="bg-muted p-4 rounded-md">
-                        {visualContent.code || 'No code execution yet'}
-                      </pre>
-                    </div>
-                  </TabsContent>
-                  <TabsContent value="doc" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
-                    <div className={styles.docViewer}>
-                      <div className="p-4 rounded-md bg-muted">
-                        {visualContent.doc || 'No document generation yet'}
-                      </div>
-                    </div>
-                  </TabsContent>
-                  <TabsContent value="web" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
-                    <div className={styles.webViewer}>
-                      <div className="p-4 rounded-md bg-muted">
-                        {visualContent.web ? (
-                          <div dangerouslySetInnerHTML={{ __html: visualContent.web }} />
-                        ) : (
-                          'No web content yet'
-                        )}
-                      </div>
-                    </div>
-                  </TabsContent>
-                </ScrollArea>
-              </Tabs>
+              <ScrollArea className="h-[calc(100vh-350px)] px-4">
+                {currentToolName && currentToolDetails ? (
+                  <ToolsWrapper 
+                    toolName={currentToolName} 
+                    toolDetails={currentToolDetails} 
+                  />
+                ) : (
+                  <div className="flex items-center justify-center h-[300px] text-muted-foreground">
+                    No active tool visualization
+                  </div>
+                )}
+              </ScrollArea>
             </CardContent>
           </Card>
         </div>
