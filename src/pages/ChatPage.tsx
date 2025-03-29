@@ -983,7 +983,7 @@ const ChatPage = () => {
           <Card className={styles.visualCard}>
             <CardHeader className="pb-3">
               <div className="flex justify-between items-center">
-                <CardTitle className="text-xl">Visualization</CardTitle>
+                <CardTitle className="text-xl">OpenManus's computer</CardTitle>
                 <Badge variant="outline">Real-time</Badge>
               </div>
               <CardDescription>Watch AI actions in real-time</CardDescription>

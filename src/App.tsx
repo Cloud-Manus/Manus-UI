@@ -4,6 +4,7 @@ import ChatPage from './pages/ChatPage';
 import TasksPage from './pages/TasksPage';
 // import TaskDetailPage from './pages/TaskDetailPage';
 import MainLayout from './layouts/MainLayout';
+import './App.css';
 
 // Create a client
 const queryClient = new QueryClient();
