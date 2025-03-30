@@ -1,4 +1,4 @@
-import { ToolName } from './tools/base';
+import type { ToolName, ToolDetails } from './tools/base';
 
 export enum EventType {
   "task_start" = "task_start", // 开始执行任务
@@ -9,7 +9,8 @@ export enum EventType {
   "step" = "step",
   
   "tool_select" = "tool_select", // 选择工具
-  "tool_use" = "tool_use", // 执行工具
+  "tool_execute" = "tool_execute", // 执行工具
+  "tool_completed" = "tool_completed", // 工具执行完成
 
   "error" = "error",
 
@@ -97,7 +98,7 @@ export type Workflow = {
   metaData?: {
     planningModel: string;
     VisModel: string;
-    toolsUsed: Tool[];
+    toolsUsed: ToolName[];
   };
   events: WorkflowEvent[];
 };
