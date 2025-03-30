@@ -1,0 +1,236 @@
+@use "./styles/colors" as *;
+@use "./styles/theme" as *;
+@use "./styles/mixins" as *;
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  // Custom variables
+  --desktop-width: 1200px;
+  --font-bold: 700;
+  --tracking-wide: 0.3px;
+  --font-normal: 500;
+  --font-size-regular: 14px;
+  --font-size-small: 12px;
+  --font-medium: 500;
+  --small-radius: 6px;
+  --large-radius: 8px;
+  --xl-radius: 16px;
+
+  --spacing-layout-x: 65px;
+  --spacing-header-bottom: 50px;
+  --spacing-block-y: 30px;
+  --spacing-block-x: 24px;
+  --spacing-button: 20px;
+  --spacing-web-text: 20px;
+  --spacing-console-text: 6px;
+  --spacing-console-body-padding: 24px;
+
+  --radius-button: 6px;
+  --radius-input: 6px;
+  --radius-form: 8px;
+  --radius-dialog: 8px;
+  --radius-dropdown-form: 6px;
+  --radius-dropdown-item: 4px;
+
+  --max-width: 1440px;
+  --header-height: 45px;
+  --notice-height: 50px;
+  --mask-bg: rgba(0, 0, 0, 0.5);
+
+  // shadcn component style configuration variables
+  --background: rgb(255, 255, 255);
+  --foreground: rgb(10, 10, 10);
+  --card: rgb(255, 255, 255);
+  --card-foreground: var(--dark-1);
+  --popover: rgb(255, 255, 255);
+  --popover-foreground: rgb(10, 10, 10);
+  --muted: var(--gray-2);
+  --muted-foreground: var(--dark-5);
+  --border: var(--gray-1);
+  --input: var(--gray-1);
+  --ring: var(--dark-5);
+  --ring-dark: var(--dark-1);
+  --ring-primary: var(--brand-0);
+  --chart-1: rgb(243, 133, 58);
+  --chart-2: rgb(42, 162, 149);
+  --chart-3: rgb(39, 77, 94);
+  --chart-4: rgb(199, 224, 66);
+  --chart-5: rgb(242, 173, 33);
+  --radius: 0.5rem;
+  
+  // 将 media query 声明包装在 & 中
+  & {
+    @include screen-sm {
+      --spacing-header-bottom: 80px;
+      --header-height: 60px;
+    }
+  }
+}
+
+.max_width_container {
+  width: 100%;
+  padding-left: 5vw;
+  padding-right: 5vw;
+}
+.page_wrap {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  padding-left: 5vw;
+  padding-right: 5vw;
+}
+
+// 将嵌套规则移到外层
+.max_width_container,
+.page_wrap {
+  @include screen-lg {
+    max-width: 100%;
+    padding-left: var(--spacing-layout-x);
+    padding-right: var(--spacing-layout-x);
+  }
+  
+  @media (min-width: 1500px) {
+    max-width: var(--max-width);
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 0;
+    padding-right: 0;
+  }
+}
+
+.font-h1 {
+  @include font-h1;
+}
+
+.font-h2 {
+  @include font-h2;
+}
+
+.font-h3 {
+  @include font-h3;
+}
+
+.font-h4 {
+  @include font-h4;
+}
+
+.font-h5 {
+  @include font-h5;
+}
+
+.font-h6 {
+  @include font-h6;
+}
+
+.font-lead {
+  @include font-lead;
+}
+
+.font-large {
+  @include font-large;
+}
+
+.font-p {
+  @include font-p;
+}
+
+.font-p-medium {
+  @include font-p-medium;
+}
+
+.font-list {
+  @include font-list;
+}
+
+.font-table-head {
+  @include font-table-head;
+}
+
+.font-table-item {
+  @include font-table-item;
+}
+
+.font-blockquote {
+  @include font-blockquote;
+}
+
+.font-small {
+  @include font-small;
+}
+
+.font-small-medium {
+  @include font-small-medium;
+}
+
+.font-subtle {
+  @include font-subtle;
+}
+
+.font-subtle-medium {
+  @include font-subtle-medium;
+}
+
+.font-subtle-semibold {
+  @include font-subtle-semibold;
+}
+
+.font-link {
+  @include font-link;
+}
+
+.inline-code {
+  @include inline-code;
+}
+
+.mark-func {
+  @include mark-func;
+}
+
+.border {
+  border-color: var(--border);
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  color: var(--default-font-color);
+  font-style: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html {
+  font-family: var(--font-family);
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-text-fill-color: var(--webkit-autofill-font-color) !important;
+  transition: background-color 5000s ease-in-out 0s;
+  -webkit-box-shadow: 0 0 0 30px transparent inset !important;
+  caret-color: var(--dark-1) !important;
+}
+
+textarea::-webkit-scrollbar,
+.scrollBar_container::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+textarea::-webkit-scrollbar,
+.scrollBar_container::-webkit-scrollbar-track {
+  background: var(--gray-2);
+}
+textarea::-webkit-scrollbar,
+.scrollBar_container::-webkit-scrollbar-thumb {
+  background: var(--dark-7);
+  border-radius: 3px;
+}
+textarea::-webkit-scrollbar,
+.scrollBar_container::-webkit-scrollbar-corner {
+  background: var(--gray-2);
+}

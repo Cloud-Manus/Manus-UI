@@ -1,4 +1,5 @@
-import { ToolDetails, ToolName } from "@/types/tools/base";
+import type { ToolDetails } from "@/types/tools/base";
+import { ToolName } from "@/types/tools/base";
 import StrReplaceEditor from "./StrReplaceEditor/StrReplaceEditor";
 
 export default function ToolsWrapper({

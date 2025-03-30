@@ -11,7 +11,8 @@ import { Separator } from '../components/ui/separator';
 import apiService from '../services/api';
 import styles from './ChatPage.module.scss';
 import ToolsWrapper from '../components/tools/ToolsWrapper';
-import { ToolName, ToolDetails } from '../types/tools/base';
+import type { ToolDetails } from '../types/tools/base';
+import { ToolName } from '../types/tools/base';
 
 // 导入新的类型定义，但使用字符串字面量而不是枚举
 // 这样可以避免 TypeScript 类型推断中的一些问题
@@ -900,111 +901,148 @@ const ChatPage = () => {
   };
 
   return (
-    <div className={`${styles.chatContainer} ${expanded ? styles.expanded : ''}`}>
-      <div className={styles.mainSection}>
-        {((status && events.length > 0) || isReplaying) && (
-          <Card className={styles.eventsCard}>
-            <CardHeader className="pb-3">
-              <div className="flex justify-between items-center">
-                <CardTitle className="text-xl">Task Progress</CardTitle>
-                <div className="flex items-center gap-2">
-                  {getStatusBadge()}
-                  {!isReplaying && recordedEvents.length > 0 && (
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={downloadRecordedEvents}
-                      className="flex items-center gap-1"
-                    >
-                      <DownloadIcon className="h-3 w-3" />
-                      保存记录
-                    </Button>
-                  )}
-                  {status === 'completed' && !!currentTaskId && !isReplaying && (
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={resetChat}
-                      className="flex items-center gap-1"
-                    >
-                      新建对话
-                    </Button>
-                  )}
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    onChange={handleFileUpload}
-                    accept=".json"
-                    className="hidden"
-                  />
-                  {!isReplaying && (
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={() => fileInputRef.current?.click()}
-                      className="flex items-center gap-1"
-                    >
-                      <UploadIcon className="h-3 w-3" />
-                      导入记录重放
-                    </Button>
-                  )}
+    <div className={`h-full flex flex-col gap-4 w-full ${expanded ? '' : 'max-w-[1080px] mx-auto'}`}>
+      <div className={`${styles.chatContainer} ${expanded ? styles.expanded : ''}`}>
+        <div className={styles.mainSection}>
+          {((status && events.length > 0) || isReplaying) && (
+            <Card className={styles.eventsCard}>
+              <CardHeader className="p-3">
+                <div className="flex justify-between items-center">
+                  <CardTitle className="text-xl">Task Progress</CardTitle>
+                  <div className="flex items-center gap-2">
+                    {getStatusBadge()}
+                    {!isReplaying && recordedEvents.length > 0 && (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={downloadRecordedEvents}
+                        className="flex items-center gap-1"
+                      >
+                        <DownloadIcon className="h-3 w-3" />
+                        保存记录
+                      </Button>
+                    )}
+                    {status === 'completed' && !!currentTaskId && !isReplaying && (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={resetChat}
+                        className="flex items-center gap-1"
+                      >
+                        新建对话
+                      </Button>
+                    )}
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleFileUpload}
+                      accept=".json"
+                      className="hidden"
+                    />
+                    {!isReplaying && (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => fileInputRef.current?.click()}
+                        className="flex items-center gap-1"
+                      >
+                        <UploadIcon className="h-3 w-3" />
+                        导入记录重放
+                      </Button>
+                    )}
+                  </div>
                 </div>
-              </div>
-              <CardDescription>Real-time updates from AI agent</CardDescription>
-              <Separator />
-            </CardHeader>
-            <CardContent className="p-0">
-              <ScrollArea className="h-[300px] px-4">
-                <div className={styles.eventsContainer}>
-                  {events.length === 0 ? (
-                    <div className={styles.emptyState}>
-                      {isReplaying ? 'Loading replay events...' : 'Waiting for task to start...'}
-                    </div>
-                  ) : (
-                    <div className={styles.eventsList}>
-                      {events.map((event, index) => (
-                        <div key={`${event.type}-${index}-${event.step}`} className={styles.eventItem}>
-                          {renderEvent(event)}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </ScrollArea>
-            </CardContent>
-          </Card>
-        )}
+                <CardDescription>Real-time updates from AI agent</CardDescription>
+                <Separator />
+              </CardHeader>
+              <CardContent className="p-0 flex-1 flex flex-col overflow-x-auto">
+                <ScrollArea className="px-3 flex-1">
+                  <div className={styles.eventsContainer}>
+                    {events.length === 0 ? (
+                      <div className={styles.emptyState}>
+                        {isReplaying ? 'Loading replay events...' : 'Waiting for task to start...'}
+                      </div>
+                    ) : (
+                      <div className={styles.eventsList}>
+                        {events.map((event, index) => (
+                          <div key={`${event.type}-${index}-${event.step}`} className={styles.eventItem}>
+                            {renderEvent(event)}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </ScrollArea>
+              </CardContent>
+            </Card>
+          )}
 
-        {events.length === 0 && !currentTaskId && !isReplaying && (
-          <Card className={styles.emptyStateCard}>
-            <CardContent>
-              <div 
-                ref={dropZoneRef}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-                className={`${styles.dropZone} ${isDragging ? styles.dragging : ''}`}
+          {events.length === 0 && !currentTaskId && !isReplaying && (
+            <div 
+              ref={dropZoneRef}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              className={`${styles.dropZone} ${isDragging ? styles.dragging : ''}`}
+            >
+              <UploadIcon className="h-16 w-16 mb-4 text-muted-foreground" />
+              <h3 className="text-lg font-medium mb-2">导入任务记录</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                拖放任务记录文件到此处，或者
+              </p>
+              <Button 
+                variant="outline"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isReplaying}
               >
-                <UploadIcon className="h-16 w-16 mb-4 text-muted-foreground" />
-                <h3 className="text-lg font-medium mb-2">导入任务记录</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  拖放任务记录文件到此处，或者
-                </p>
-                <Button 
-                  variant="outline"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={isReplaying}
-                >
-                  选择文件上传
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+                选择文件上传
+              </Button>
+            </div>
+          )}
+        </div>
+
+        {expanded && (
+          <div className={styles.visualSection}>
+            <Card className="h-full">
+              <CardHeader className="pb-3">
+                <div className="flex justify-between items-center">
+                  <CardTitle className="text-xl">OpenManus's computer</CardTitle>
+                  <Badge variant="outline">Real-time</Badge>
+                </div>
+                <CardDescription>Watch AI actions in real-time</CardDescription>
+                <Separator />
+              </CardHeader>
+              <CardContent className="p-0">
+                <ScrollArea className="h-[calc(100vh-350px)] px-4">
+                  {currentToolName && currentToolDetails ? (
+                    <ToolsWrapper 
+                      toolName={currentToolName} 
+                      toolDetails={currentToolDetails} 
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center h-[300px] text-muted-foreground">
+                      No active tool visualization
+                    </div>
+                  )}
+                </ScrollArea>
+              </CardContent>
+            </Card>
+          </div>
         )}
 
+        <Button 
+          variant="outline" 
+          size="icon" 
+          className={styles.expandButton}
+          onClick={() => setExpanded(!expanded)}
+        >
+          {expanded ? <ChevronRightIcon className="h-4 w-4" /> : <ChevronLeftIcon className="h-4 w-4" />}
+        </Button>
+      </div>
+      <div className="flex flex-col gap-2 mt-auto">
         {isReplaying && (
           <Card className={styles.replayControlCard}>
-            <CardContent className="p-4">
+            <CardContent className="p-1">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Button 
@@ -1072,95 +1110,39 @@ const ChatPage = () => {
             </CardContent>
           </Card>
         )}
-
-        <Card className={styles.promptCard}>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-xl">Chat with Manus AI</CardTitle>
-            <CardDescription>Ask anything and let the AI agent assist you</CardDescription>
-            <Separator />
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <Textarea
-                placeholder="Ask Manus AI anything..."
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                className={styles.textareaContainer}
-                disabled={isReplaying || (status === 'completed' && !!currentTaskId)}
-                readOnly={isReplaying}
-              />
-            </form>
-          </CardContent>
-          <CardFooter className="flex justify-between">
-            <div className="text-sm text-muted-foreground">
-              {createTaskMutation.isPending ? '创建任务中...' : 
-               isReplaying ? '正在重放任务...' : 
-               (status === 'completed' && !!currentTaskId) ? '任务已完成，若要继续对话请创建新任务' : 
-               '输入消息并回车发送'}
-            </div>
-            <div className="flex gap-2">
-              {status === 'running' && !!currentTaskId && !isReplaying && (
-                <Button 
-                  variant="outline" 
-                  onClick={handleTerminateTask}
-                  disabled={isTerminating}
-                  className="flex items-center gap-1"
-                >
-                  <StopCircleIcon className="mr-2 h-4 w-4" />
-                  {isTerminating ? '停止中...' : '停止任务'}
-                </Button>
-              )}
+        <form onSubmit={handleSubmit} className="relative">
+          <Textarea
+            placeholder="Ask Manus AI anything..."
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            className={`p-4 resize-none min-h-3`}
+            disabled={isReplaying || (status === 'completed' && !!currentTaskId)}
+            readOnly={isReplaying}
+            rows={3}
+          />
+          <div className="absolute flex gap-2 items-center bottom-2 right-2">
+            <Button
+              type="submit"
+              size="xs"
+              disabled={createTaskMutation.isPending || !prompt.trim() || isReplaying || (status === 'completed' && !!currentTaskId)}
+            >
+              {createTaskMutation.isPending ? '发送中...' : '发送'}
+              <SendIcon size={14} className="ml-1" />
+            </Button>
+            {status === 'running' && !!currentTaskId && !isReplaying && (
               <Button 
-                type="submit" 
-                onClick={handleSubmit}
-                disabled={createTaskMutation.isPending || !prompt.trim() || isReplaying || (status === 'completed' && !!currentTaskId)}
-                className={styles.sendButton}
+                variant="outline" 
+                onClick={handleTerminateTask}
+                disabled={isTerminating}
+                className="flex items-center gap-1"
               >
-                <SendIcon className="mr-2 h-4 w-4" />
-                {createTaskMutation.isPending ? '发送中...' : '发送'}
+                <StopCircleIcon className="mr-2 h-4 w-4" />
+                {isTerminating ? '停止中...' : '停止任务'}
               </Button>
-            </div>
-          </CardFooter>
-        </Card>
+            )}
+          </div>
+        </form>
       </div>
-
-      {expanded && (
-        <div className={styles.visualSection}>
-          <Card className={styles.visualCard}>
-            <CardHeader className="pb-3">
-              <div className="flex justify-between items-center">
-                <CardTitle className="text-xl">OpenManus's computer</CardTitle>
-                <Badge variant="outline">Real-time</Badge>
-              </div>
-              <CardDescription>Watch AI actions in real-time</CardDescription>
-              <Separator />
-            </CardHeader>
-            <CardContent className="p-0">
-              <ScrollArea className="h-[calc(100vh-350px)] px-4">
-                {currentToolName && currentToolDetails ? (
-                  <ToolsWrapper 
-                    toolName={currentToolName} 
-                    toolDetails={currentToolDetails} 
-                  />
-                ) : (
-                  <div className="flex items-center justify-center h-[300px] text-muted-foreground">
-                    No active tool visualization
-                  </div>
-                )}
-              </ScrollArea>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      <Button 
-        variant="outline" 
-        size="icon" 
-        className={styles.expandButton}
-        onClick={() => setExpanded(!expanded)}
-      >
-        {expanded ? <ChevronRightIcon className="h-4 w-4" /> : <ChevronLeftIcon className="h-4 w-4" />}
-      </Button>
     </div>
   );
 };

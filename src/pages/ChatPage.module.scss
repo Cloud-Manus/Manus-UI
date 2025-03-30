@@ -1,32 +1,35 @@
 .chatContainer {
   margin: 0 auto;
   position: relative;
+  flex: 1;
+  width: 100%;
   display: flex;
   flex-direction: row;
-  height: calc(100vh - 140px); // Accounting for header and footer
+  align-items: stretch;
+  justify-content: center;
   transition: all 0.3s ease;
+  overflow: hidden;
   
   &.expanded {
+    gap: 16px;
     .mainSection {
-      width: 50%;
+      flex: 1;
     }
   }
   
   .mainSection {
     width: 100%;
-    padding: 1rem;
-    overflow-y: auto;
     transition: width 0.3s ease;
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 10px;
+    max-width: 1080px;
   }
   
   .visualSection {
-    width: 50%;
-    padding: 1rem;
+    flex: 1;
     overflow-y: auto;
-    border-left: 1px solid var(--border);
+    overflow-x: hidden;
   }
   
   .expandButton {
@@ -39,11 +42,6 @@
     &:hover {
       background-color: var(--accent);
     }
-  }
-  
-  .textareaContainer {
-    min-height: 120px;
-    resize: vertical;
   }
   
   .sendButton {
@@ -59,6 +57,9 @@
   .eventsCard {
     flex: 1;
     min-height: 150px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
     
     .eventsContainer {
       padding: 0 0.5rem;
@@ -177,14 +178,11 @@
     overflow: auto;
   }
   
-  .emptyStateCard {
-    margin-bottom: 1rem;
-  }
-  
   .replayControlCard {
     margin-bottom: 1rem;
     border: 1px solid var(--border);
     background-color: rgba(var(--primary-rgb), 0.05);
+    z-index: 100;
     
     input[type="range"] {
       -webkit-appearance: none;
@@ -218,7 +216,6 @@
     border: 2px dashed var(--border);
     border-radius: 0.5rem;
     transition: all 0.2s ease;
-    cursor: pointer;
     text-align: center;
     
     &.dragging {

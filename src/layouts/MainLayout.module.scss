@@ -1,5 +1,6 @@
 .layoutContainer {
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
 
@@ -41,6 +42,10 @@
   .main {
     flex: 1;
     padding: 1rem;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
   }
 
   .footer {
