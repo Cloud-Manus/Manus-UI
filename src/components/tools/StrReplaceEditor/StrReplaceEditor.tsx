@@ -1,11 +1,47 @@
 import type { StrReplaceEditorParams } from "@/types/tools/strReplaceEditor";
 import { useEffect, useRef } from "react";
 import * as monaco from "monaco-editor";
-import styles from "./StrReplaceEditor.module.scss";
+import Window from "../Window/Window";
 
 interface StrReplaceEditorProps {
   toolDetails: StrReplaceEditorParams & { result?: { output: string } };
 }
+
+const getLanguage = (path: string): string => {
+  const extension = path.split(".").pop();
+  switch (extension) {
+    case "js":
+      return "javascript";
+    case "ts":
+      return "typescript";
+    case "py":
+      return "python";
+    case "sh":
+      return "bash";
+    case "html":
+      return "html";
+    case "css":
+      return "css";
+    case "json":
+      return "json";
+    case "md":
+      return "markdown";
+    case "txt":
+      return "plaintext";
+    case "xml":
+      return "xml";
+    case "yaml":
+      return "yaml";
+    case "yml":
+      return "yaml";
+    case "toml":
+      return "toml";
+    case "ini":
+      return "ini";
+    default:
+      return "plaintext";
+  }
+};
 
 export default function StrReplaceEditor({ toolDetails }: StrReplaceEditorProps) {
   const editorContainerRef = useRef<HTMLDivElement>(null);
@@ -37,7 +73,7 @@ export default function StrReplaceEditor({ toolDetails }: StrReplaceEditorProps)
       // 创建编辑器实例
       editorRef.current = monaco.editor.create(editorContainerRef.current, {
         value: codeContent,
-        language: "typescript", // 可以根据文件类型自动检测语言
+        language: getLanguage(toolDetails.path), // 可以根据文件类型自动检测语言
         theme: "vs-dark",
         automaticLayout: true,
         minimap: {
@@ -64,12 +100,11 @@ export default function StrReplaceEditor({ toolDetails }: StrReplaceEditorProps)
   };
 
   return (
-    <div className={styles.editorWrapper}>
-      <div className={styles.editorHeader}>
-        <div className={styles.fileName}>{getFileName()}</div>
-        <div className={styles.commandType}>{toolDetails.command}</div>
-      </div>
-      <div className={styles.editorContainer} ref={editorContainerRef}></div>
-    </div>
+    <Window
+      title={getFileName()}
+      contentClassName="bg-[#1e1e1e]"
+    >
+      <div className="h-full py-3" ref={editorContainerRef}></div>
+    </Window>
   );
-} 
+}

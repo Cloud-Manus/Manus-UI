@@ -1,7 +1,6 @@
 import type { ToolDetails } from "@/types/tools/base";
 import { ToolName } from "@/types/tools/base";
 import StrReplaceEditor from "./StrReplaceEditor/StrReplaceEditor";
-import Bash from "./Bash/Bash";
 import Terminal from "./Terminal/Terminal";
 import WebSearch from "./WebSearch/WebSearch";
 import BrowserUse from "./BrowserUse/BrowserUse";
@@ -25,7 +24,7 @@ export default function ToolsWrapper({
         break;
       case ToolName.Bash:
         if (toolDetails.bash) {
-          return <Bash toolDetails={toolDetails.bash} />;
+          return <Terminal toolDetails={toolDetails.bash} />;
         }
         break;
       case ToolName.Terminal:

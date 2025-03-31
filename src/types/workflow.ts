@@ -15,18 +15,6 @@ export enum EventType {
   "error" = "error",
 
   "update_token_count" = "update_token_count",
-  
-  // "plan_create" = "plan_create", // 创建计划，附带内容
-  // "plan_update" = "plan_update", // 更新计划
-  // "plan_step_start" = "plan_step_start", // 开始执行计划步骤
-  // "plan_step_completed" = "plan_step_completed", // 完成计划步骤
-  // "plan_status" = "plan_status", // 计划状态
-  // "plan_step" = "plan_step", // 计划步骤
-  
-  // "flow_start" = "flow_start",
-  // "flow_step" = "flow_step",
-  // "flow_complete" = "flow_complete",
-  // "flow_error" = "flow_error",
 }
 
 export type WorkflowBaseEvent = {

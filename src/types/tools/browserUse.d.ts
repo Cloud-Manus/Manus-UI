@@ -1,3 +1,5 @@
+import type { ToolResponse } from "@/types/tools/base";
+
 // BrowserUseTool types
 type BrowserAction = 
   | 'go_to_url' 

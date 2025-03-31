@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback, FormEvent, useRef, ChangeEvent, DragEvent } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { SendIcon, ChevronLeftIcon, ChevronRightIcon, UploadIcon, DownloadIcon, StopCircleIcon, PlayIcon, PauseIcon, SkipBackIcon, SkipForwardIcon, X } from 'lucide-react';
+import { SendIcon, UploadIcon, DownloadIcon, StopCircleIcon, PlayIcon, PauseIcon, SkipBackIcon, SkipForwardIcon, X } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Textarea } from '../components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from '../components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { ScrollArea } from '../components/ui/scroll-area';
 import { Badge } from '../components/ui/badge';
 import { Separator } from '../components/ui/separator';
@@ -14,6 +14,14 @@ import ToolsWrapper from '../components/tools/ToolsWrapper';
 import type { ToolDetails } from '../types/tools/base';
 import { ToolName } from '../types/tools/base';
 import { EventType } from '@/types/workflow';
+import type { StrReplaceEditorDetails } from '@/types/tools/strReplaceEditor';
+import type { BrowserUseDetails } from '@/types/tools/browserUse';
+import type { TerminalDetails } from '@/types/tools/terminal';
+import type { WebSearchDetails } from '@/types/tools/webSearch';
+import type { CreateChatCompletionDetails } from '@/types/tools/createChatComopletion';
+import type { PlanningDetails } from '@/types/tools/planning';
+import type { TerminateDetails } from '@/types/tools/terminate';
+import { BashDetails } from '@/types/tools/bash';
 
 // 导入新的类型定义，但使用字符串字面量而不是枚举
 // 这样可以避免 TypeScript 类型推断中的一些问题
@@ -35,16 +43,20 @@ type SimpleWorkflowEvent = {
   timestamp: number;
   // 工具事件相关字段
   tool?: string;
-  toolStatus?: 'executing' | 'success' | 'failed';
-  detail?: Record<string, unknown>;
+  toolStatus?: 'executing' | 'success' | 'fail'; // 修改为与 WorkflowToolEvent 一致，从 'failed' 改为 'fail'
+  toolDetails?: ToolDetails; // 与 workflow.ts 中的 WorkflowToolEvent.toolDetails 字段兼容
+  toolsSelected?: ToolName[]; // 与 workflow.ts 中的 WorkflowToolEvent.toolsSelected 字段兼容
   // 任务事件相关字段
   agentStatus?: string;
   request?: string;
   results?: string[];
+  curStep?: number; // 与 workflow.ts 中的 WorkflowTaskEvent.curStep 字段兼容
   // 聊天事件相关字段
   sender?: 'user' | 'assistant' | 'system';
   // 错误事件相关字段
   error?: string;
+  // 令牌计数事件相关字段
+  tokenCount?: number;
 };
 
 // 定义一个简化的工作流类型
@@ -70,11 +82,6 @@ const ChatPage = () => {
   const [expanded, setExpanded] = useState(false);
   const [events, setEvents] = useState<DisplayStep[]>([]);
   const [status, setStatus] = useState<string>('');
-  const [visualContent, setVisualContent] = useState<{ code: string; doc: string; web: string }>({
-    code: '',
-    doc: '',
-    web: '',
-  });
   const [currentTaskId, setCurrentTaskId] = useState<string | null>(null);
   const [recordedEvents, setRecordedEvents] = useState<SimpleWorkflowEvent[]>([]);
   const [isReplaying, setIsReplaying] = useState<boolean>(false);
@@ -86,7 +93,6 @@ const ChatPage = () => {
   const [replayState, setReplayState] = useState<ReplayState>('idle');
   const [allReplaySteps, setAllReplaySteps] = useState<DisplayStep[]>([]);
   const [currentStepIndex, setCurrentStepIndex] = useState<number>(0);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [totalSteps, setTotalSteps] = useState<number>(0); // 保留此状态，但现在直接使用步骤数组长度
   
   // 使用useRef存储当前的重放状态，防止闭包问题
@@ -141,92 +147,17 @@ const ChatPage = () => {
     return displayStep;
   };
   
-  // 辅助函数：更新可视化内容
-  const updateVisualFromEvents = (events: DisplayStep[] | SimpleWorkflowEvent[]) => {
-    // 重置可视化内容
-    const newVisualContent = { code: '', doc: '', web: '' };
-    
-    // 根据数组类型处理
-    if (events.length > 0) {
-      // 处理所有事件
-      events.forEach(event => {
-        // 检查是否是工具执行完成事件
-        if ('type' in event && (event.type === EventType.tool_completed || event.type === 'tool_execute')) {
-          // 如果是 DisplayStep 类型，检查 toolName
-          if ('toolName' in event) {
-            // 处理 DisplayStep 类型的事件
-            // 通常这些事件已经处理过，内容已经放入 content 中
-            if (event.content.includes('code:')) {
-              newVisualContent.code = event.content.replace('code:', '');
-            } else if (event.content.includes('document:')) {
-              newVisualContent.doc = event.content.replace('document:', '');
-            } else if (event.content.includes('web:')) {
-              newVisualContent.web = event.content.replace('web:', '');
-            }
-          } else if ('detail' in event && event.detail) {
-            // 处理 SimpleWorkflowEvent 类型的事件
-            const detail = event.detail;
-            
-            if ('code' in detail && detail.code) {
-              newVisualContent.code = String(detail.code);
-            } else if ('document' in detail && detail.document) {
-              newVisualContent.doc = String(detail.document);
-            } else if ('web' in detail && detail.web) {
-              newVisualContent.web = String(detail.web);
-            }
-          }
-        }
-      });
-    }
-    
-    setVisualContent(newVisualContent);
-  };
-  
   // 辅助函数：更新工具可视化状态
-  const updateToolVisualization = (toolName: ToolName, details: Record<string, unknown>) => {
+  const updateToolVisualization = useCallback((toolName: ToolName, details: ToolDetails) => {
     // 自动展开侧边栏
     if (!expanded) {
       setExpanded(true);
     }
     
-    // 构建工具详情对象
-    const toolDetails: ToolDetails = {};
-    
-    // 根据工具类型设置对应属性
-    switch (toolName) {
-      case ToolName.StrReplaceEditor:
-        toolDetails.strReplaceEditor = details as any;
-        break;
-      case ToolName.BrowserUseTool:
-        toolDetails.browserUse = details as any;
-        break;
-      case ToolName.Bash:
-        toolDetails.bash = details as any;
-        break;
-      case ToolName.Terminal:
-        toolDetails.terminal = details as any;
-        break;
-      case ToolName.WebSearch:
-        toolDetails.webSearch = details as any;
-        break;
-      case ToolName.CreateChatCompletion:
-        toolDetails.createChatCompletion = details as any;
-        break;
-      case ToolName.PlanningTool:
-        toolDetails.planning = details as any;
-        break;
-      case ToolName.Terminate:
-        toolDetails.terminate = details as any;
-        break;
-      default:
-        console.warn('Unknown tool type:', toolName);
-        return; // 如果是未知工具类型，不更新状态
-    }
-    
     // 更新工具状态
     setCurrentToolName(toolName);
-    setCurrentToolDetails(toolDetails);
-  };
+    setCurrentToolDetails(details);
+  }, [expanded]);
   
   // 处理事件点击：显示工具可视化
   const handleEventClick = (event: DisplayStep, index: number) => {
@@ -244,9 +175,10 @@ const ChatPage = () => {
         e => e.type === EventType.tool_completed && e.step === event.step
       );
       
-      if (originalEvent && originalEvent.tool && originalEvent.detail) {
-        // 更新工具可视化
-        updateToolVisualization(originalEvent.tool as ToolName, originalEvent.detail);
+      if (originalEvent && originalEvent.tool && originalEvent.toolDetails) {
+        // 更新工具可视化，优先使用 toolDetails，如果没有则回退到 detail
+        const details = originalEvent.toolDetails || {};
+        updateToolVisualization(originalEvent.tool as ToolName, details);
       }
     } else {
       // 对于实时事件（非回放），可以从记录的事件中查找
@@ -254,9 +186,10 @@ const ChatPage = () => {
         e => e.type === EventType.tool_completed && e.step === event.step
       );
       
-      if (originalEvent && originalEvent.tool && originalEvent.detail) {
-        // 更新工具可视化
-        updateToolVisualization(originalEvent.tool as ToolName, originalEvent.detail);
+      if (originalEvent && originalEvent.tool && originalEvent.toolDetails) {
+        // 更新工具可视化，优先使用 toolDetails，如果没有则回退到 detail
+        const details = originalEvent.toolDetails || {};
+        updateToolVisualization(originalEvent.tool as ToolName, details);
       }
     }
   };
@@ -268,7 +201,6 @@ const ChatPage = () => {
     setStatus('');
     setPrompt('');
     setRecordedEvents([]);
-    setVisualContent({ code: '', doc: '', web: '' });
     setReplayState('idle');
     replayStateRef.current = 'idle';
     setAllReplaySteps([]);
@@ -333,9 +265,10 @@ const ChatPage = () => {
     
     // 辅助函数：处理工具完成事件
     const handleToolCompletedEvent = (data: SimpleWorkflowEvent) => {
-      if (data.tool && data.detail) {
-        // 更新工具可视化
-        updateToolVisualization(data.tool as ToolName, data.detail);
+      if (data.tool && data.toolDetails) {
+        // 更新工具可视化，优先使用 toolDetails，如果没有则回退到 detail
+        const details = data.toolDetails || {};
+        updateToolVisualization(data.tool as ToolName, details);
       }
       
       // 创建新的展示步骤
@@ -406,7 +339,11 @@ const ChatPage = () => {
             break;
             
           case 'update_token_count':
-            // 处理 token 计数更新，如需要
+            // 处理 token 计数更新
+            if (data.tokenCount) {
+              console.log('更新 token 计数:', data.tokenCount);
+              // 这里可以添加显示 token 计数的逻辑
+            }
             break;
         }
       } catch (error) {
@@ -545,8 +482,6 @@ const ChatPage = () => {
         // 清空当前状态
         setCurrentTaskId(null);
         setEvents([]);
-        // 不要清空status状态，让startReplay来设置它
-        setVisualContent({ code: '', doc: '', web: '' });
         
         // 设置 prompt 值，这样用户可以看到原始请求
         setPrompt(workflow.prompt || '');
@@ -722,19 +657,13 @@ const ChatPage = () => {
       case EventType.tool_completed:
         return (
           <div
-            className={`rounded-full border py-2 px-3 bg-white ${isClickable ? styles.clickable : ''} ${isSelected ? styles.selected : ''}`}
+            className={`rounded-full border py-2 px-3 bg-white ${isClickable ? styles.clickable : ''} ${isSelected ? styles.selected : ''} overflow-hidden`}
             onClick={handleClick}
             role={isClickable ? "button" : undefined}
-            tabIndex={isClickable ? 0 : undefined}
-            onKeyDown={isClickable ? (e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                handleClick?.();
-              }
-            } : undefined}
           >
             <span className="font-p-medium mr-2">Using tool:</span>
             {event.toolName && <span className="inline-code mr-2">{event.toolName}</span>}
-            {event.content && <span className="font-subtle">{event.content}</span>}
+            {/* {event.content && <span className="font-subtle overflow-hidden text-ellipsis whitespace-nowrap">{event.content}</span>} */}
           </div>
         )
       case EventType.chat:
@@ -854,9 +783,10 @@ const ChatPage = () => {
           e => e.type === EventType.tool_completed && e.step === lastToolEvent.step
         );
         
-        if (originalEvent && originalEvent.tool && originalEvent.detail) {
-          // 更新工具可视化
-          updateToolVisualization(originalEvent.tool as ToolName, originalEvent.detail);
+        if (originalEvent && originalEvent.tool && originalEvent.toolDetails) {
+          // 更新工具可视化，优先使用 toolDetails，如果没有则回退到 detail
+          const details = originalEvent.toolDetails || {};
+          updateToolVisualization(originalEvent.tool as ToolName, details);
         }
       }
     }
@@ -868,18 +798,16 @@ const ChatPage = () => {
         e => e.type === EventType.tool_execute && e.step === latestStep.step
       );
       
-      if (originalEvent && originalEvent.tool && originalEvent.detail) {
-        // 更新工具可视化
-        updateToolVisualization(originalEvent.tool as ToolName, originalEvent.detail);
+      if (originalEvent && originalEvent.tool && originalEvent.toolDetails) {
+        // 更新工具可视化，优先使用 toolDetails，如果没有则回退到 detail
+        const details = originalEvent.toolDetails || {};
+        updateToolVisualization(originalEvent.tool as ToolName, details);
       }
     }
     
     // 强制重新渲染事件列表
     console.log(`更新事件列表，显示 ${visibleSteps.length} 个事件，当前索引: ${stepIndex}`);
     setEvents([...visibleSteps]); // 使用新数组引用强制更新
-    
-    // 更新可视化内容
-    updateVisualFromEvents(visibleSteps);
     
     console.log('已跳转到步骤:', stepIndex, '显示步骤数:', visibleSteps.length);
   }, [allReplaySteps, currentWorkflow]);
@@ -935,9 +863,6 @@ const ChatPage = () => {
     console.log(`播放更新事件列表，显示 ${visibleSteps.length} 个事件，当前索引: ${nextStepIndex}`);
     setEvents([...visibleSteps]);
     
-    // 更新可视化内容
-    updateVisualFromEvents(visibleSteps);
-    
     console.log('播放到步骤:', nextStepIndex, '剩余步骤:', stepsToUse.length - nextStepIndex - 1);
     
     // 如果还有更多步骤，继续播放
@@ -969,7 +894,6 @@ const ChatPage = () => {
     setTotalSteps(0);
     setEvents([]);
     setStatus('');
-    setVisualContent({ code: '', doc: '', web: '' });
     setCurrentToolName(null);
     setCurrentToolDetails(null);
     setSelectedEventIndex(null);
@@ -1090,7 +1014,7 @@ const ChatPage = () => {
                 </div>
                 <Separator />
               </CardHeader>
-              <CardContent className="p-3 overflow-hidden">
+              <CardContent className="p-3 h-full overflow-hidden">
                 {currentToolName && currentToolDetails ? (
                   <ToolsWrapper 
                     toolName={currentToolName} 

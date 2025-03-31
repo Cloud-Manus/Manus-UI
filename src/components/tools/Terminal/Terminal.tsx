@@ -1,56 +1,33 @@
-import type { TerminalParams } from "@/types/tools/terminal";
-import { useEffect, useRef } from "react";
-import * as monaco from "monaco-editor";
-import styles from "./Terminal.module.scss";
+"use client";
+
+import { BashDetails } from "@/types/tools/bash";
+import Window from "../Window/Window";
+import { TerminalDetails } from "@/types/tools/terminal";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface TerminalProps {
-  toolDetails: TerminalParams & { result?: { output: string } };
+  toolDetails: TerminalDetails | BashDetails;
 }
 
 export default function Terminal({ toolDetails }: TerminalProps) {
-  const resultContainerRef = useRef<HTMLDivElement>(null);
-  const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
-
-  useEffect(() => {
-    // 确保DOM元素已经挂载
-    if (resultContainerRef.current) {
-      // 获取命令执行结果，通常在 result.output 中
-      const result = toolDetails.result?.output || "";
-
-      // 创建编辑器实例来显示结果
-      editorRef.current = monaco.editor.create(resultContainerRef.current, {
-        value: result,
-        language: "shell", // 使用 shell 语法高亮
-        theme: "vs-dark",
-        automaticLayout: true,
-        minimap: {
-          enabled: true
-        },
-        readOnly: true,
-        scrollBeyondLastLine: false,
-        fontSize: 14,
-        lineNumbers: "on",
-      });
-
-      // 清理函数
-      return () => {
-        editorRef.current?.dispose();
-      };
-    }
-  }, [toolDetails]);
+  // 格式化命令字符串，可以根据需要进行语法高亮等处理
+  const formatCommand = (command: string) => {
+    // 这里可以添加语法高亮或其他格式化逻辑
+    return command;
+  };
 
   return (
-    <div className={styles.terminalWrapper}>
-      <div className={styles.commandHeader}>
-        <div className={styles.title}>Terminal Command</div>
-      </div>
-      <div className={styles.commandBox}>
-        <code>{toolDetails.command}</code>
-      </div>
-      <div className={styles.resultHeader}>
-        <div className={styles.title}>Command Output</div>
-      </div>
-      <div className={styles.resultContainer} ref={resultContainerRef}></div>
-    </div>
+    <Window
+      title="终端"
+      badge={(toolDetails as BashDetails).restart ? "重启终端" : undefined}
+    >
+      <ScrollArea
+        className="flex-1 overflow-hidden px-4 py-3"
+        thumbBg="var(--dark-4)"
+      >
+        <code><span className="text-[var(--green-4)] font-bold mr-2">ubuntu@OpenManus:~ $</span>{formatCommand(toolDetails.command)}</code>
+        <code>{toolDetails.result}</code>
+      </ScrollArea>
+    </Window>
   );
 } 

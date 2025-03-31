@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   width: 100%;
-  min-height: 400px;
+  height: 100%;
   border-radius: 8px;
   overflow: hidden;
   border: 2px solid var(--tool-use-window-border);
@@ -20,11 +20,6 @@
   color: var(--tool-use-window-text-color);
 }
 
-.title {
-  font-weight: 500;
-  font-family: monospace;
-}
-
 .badge {
   background-color: var(--tool-use-window-badge);
   color: var(--tool-use-window-text-color);
@@ -35,13 +30,14 @@
 }
 
 .windowContent {
-  padding: 1rem;
   background-color: var(--tool-use-window-bg);
   overflow-x: auto;
-  
+  height: 100%;
+
   code {
     display: block;
-    white-space: pre;
+    white-space: pre-wrap;
+    word-break: break-all;
     font-family: monospace;
     font-size: 14px;
     line-height: 1.5;

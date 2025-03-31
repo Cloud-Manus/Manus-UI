@@ -110,8 +110,8 @@ export default function ToolDesc(
   }, [toolName, toolDetails]);
 
 
-  return <p className="flex items-center gap-2 font-subtle rounded-full bg-[var(--gray-2)] px-2 py-0.5">
-    <span className="font-subtle-medmiu">{action}</span>
-    <span className="inline-code">{object}</span>
+  return <p className="flex items-center gap-2 font-subtle rounded-full w-full bg-[var(--gray-2)] px-2 py-0.5 overflow-hidden">
+    <span className="font-subtle-medmiu whitespace-nowrap">{action}</span>
+    <span className="inline-code text-ellipsis overflow-hidden whitespace-nowrap">{object}</span>
   </p>
 };
