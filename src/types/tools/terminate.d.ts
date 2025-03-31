@@ -1,8 +1,10 @@
 // Terminate tool types
-export interface TerminateParams {
+interface TerminateParams {
   status: 'success' | 'failure'; // The finish status of the interaction
 }
 
-export type TerminateResponse = {
+type TerminateResponse = {
   result: string;
 }
+
+export type TerminateDetails = TerminateParams & TerminateResponse;

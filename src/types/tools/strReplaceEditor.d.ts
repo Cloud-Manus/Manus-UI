@@ -55,3 +55,5 @@ export type StrReplaceEditorParams =
 export type StrReplaceEditorResponse = {
   result: ToolResponse;
 }
+
+export type StrReplaceEditorDetails = StrReplaceEditorParams & StrReplaceEditorResponse;

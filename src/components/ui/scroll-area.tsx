@@ -7,7 +7,11 @@ function ScrollArea({
   className,
   children,
   ...props
-}: React.ComponentProps<typeof ScrollAreaPrimitive.Root>) {
+}: React.ComponentProps<typeof ScrollAreaPrimitive.Root> & {
+  thumbBg?: string;
+  barBg?: string;
+  barBorder?: string;
+}) {
   return (
     <ScrollAreaPrimitive.Root
       data-slot="scroll-area"
@@ -20,7 +24,7 @@ function ScrollArea({
       >
         {children}
       </ScrollAreaPrimitive.Viewport>
-      <ScrollBar />
+      <ScrollBar thumbBg={props.thumbBg} barBg={props.barBg} barBorder={props.barBorder} />
       <ScrollAreaPrimitive.Corner />
     </ScrollAreaPrimitive.Root>
   )
@@ -29,8 +33,15 @@ function ScrollArea({
 function ScrollBar({
   className,
   orientation = "vertical",
+  thumbBg,
+  barBg,
+  barBorder,
   ...props
-}: React.ComponentProps<typeof ScrollAreaPrimitive.ScrollAreaScrollbar>) {
+}: React.ComponentProps<typeof ScrollAreaPrimitive.ScrollAreaScrollbar> & {
+  thumbBg?: string;
+  barBg?: string;
+  barBorder?: string;
+}) {
   return (
     <ScrollAreaPrimitive.ScrollAreaScrollbar
       data-slot="scroll-area-scrollbar"
@@ -47,7 +58,13 @@ function ScrollBar({
     >
       <ScrollAreaPrimitive.ScrollAreaThumb
         data-slot="scroll-area-thumb"
-        className="bg-border relative flex-1 rounded-full"
+        className={cn(
+          "bg-border relative flex-1 rounded-full",
+          barBorder && `border-[1px] border-solid border-[${barBorder}]`
+        )}
+        style={{
+          backgroundColor: thumbBg,
+        }}
       />
     </ScrollAreaPrimitive.ScrollAreaScrollbar>
   )

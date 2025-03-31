@@ -183,8 +183,6 @@ $screen-xl: 1310px;
 @mixin inline-code {
   font-family: Menlo;
   display: inline-block;
-  padding: 3px 4px;
-  background-color: var(--gray-2);
   font-size: 14px;
   line-height: 20px;
   font-weight: 700;

@@ -6,6 +6,8 @@ import Terminal from "./Terminal/Terminal";
 import WebSearch from "./WebSearch/WebSearch";
 import BrowserUse from "./BrowserUse/BrowserUse";
 import Planning from "./Planning/Planning";
+import { getToolName } from "./utils";
+import ToolDesc from "./ToolDesc";
 
 export default function ToolsWrapper({
   toolName,
@@ -58,8 +60,16 @@ export default function ToolsWrapper({
   };
 
   return (
-    <div className="flex flex-col gap-4 w-full">
-      {renderTool()}
+    <div className="flex flex-col w-full h-full overflow-hidden">
+      <div className="flex flex-col gap-3 h-full">
+        <div className="flex flex-col justify-start items-start gap-1">
+          <p className="font-small">OpenManus 正在使用 <span className="font-small-medium bg-[var(--gray-2)] rounded-sm px-1 py-0.5">{getToolName(toolName)}</span></p>
+          <ToolDesc toolName={toolName} toolDetails={toolDetails} />
+        </div>
+        <div className="flex flex-col flex-1 overflow-hidden gap-3">
+          {renderTool()}
+        </div>
+      </div>
     </div>
   );
 }

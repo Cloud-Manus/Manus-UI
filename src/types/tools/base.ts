@@ -1,11 +1,11 @@
-import { BrowserUseParams, BrowserUseResponse } from "./browserUse";
-import { BashParams, BashResponse } from "./bash";
-import { TerminateParams, TerminateResponse } from "./terminate";
-import { StrReplaceEditorParams, StrReplaceEditorResponse } from "./strReplaceEditor";
-import { CreateChatCompletionParams, CreateChatCompletionResponse } from "./createChatComopletion";
-import { PlanningParams, PlanningResponse } from "./planning";
-import { TerminalParams, TerminalResponse } from "./terminal";
-import { WebSearchParams, WebSearchResponse } from "./webSearch";
+import { BrowserUseDetails } from "./browserUse";
+import { BashDetails } from "./bash";
+import { TerminateDetails } from "./terminate";
+import { StrReplaceEditorDetails } from "./strReplaceEditor";
+import { CreateChatCompletionDetails } from "./createChatComopletion";
+import { PlanningDetails } from "./planning";
+import { TerminalDetails } from "./terminal";
+import { WebSearchDetails } from "./webSearch";
 
 export enum ToolName {
   "BaseTool" = "BaseTool",
@@ -29,12 +29,12 @@ export interface ToolResponse {
 }
 
 export type ToolDetails = {
-  browserUse?: BrowserUseParams & BrowserUseResponse;
-  bash?: BashParams & BashResponse;
-  terminate?: TerminateParams & TerminateResponse;
-  strReplaceEditor?: StrReplaceEditorParams & StrReplaceEditorResponse;
-  createChatCompletion?: CreateChatCompletionParams & CreateChatCompletionResponse;
-  planning?: PlanningParams & PlanningResponse;
-  terminal?: TerminalParams & TerminalResponse;
-  webSearch?: WebSearchParams & WebSearchResponse;
+  browserUse?: BrowserUseDetails;
+  bash?: BashDetails;
+  terminate?: TerminateDetails;
+  strReplaceEditor?: StrReplaceEditorDetails;
+  createChatCompletion?: CreateChatCompletionDetails;
+  planning?: PlanningDetails;
+  terminal?: TerminalDetails;
+  webSearch?: WebSearchDetails;
 }

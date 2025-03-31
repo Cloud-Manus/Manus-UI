@@ -130,4 +130,4 @@ type BrowserUseResponse = {
   result: ToolResponse;
 }
 
-export type BrowserUseDetail = BrowserUseParams & BrowserUseResponse;
+export type BrowserUseDetails = BrowserUseParams & BrowserUseResponse;

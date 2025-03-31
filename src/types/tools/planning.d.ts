@@ -4,7 +4,7 @@ import { ToolResponse } from './tools';
 type PlanningCommand = 'create' | 'update' | 'list' | 'get' | 'set_active' | 'mark_step' | 'delete';
 type PlanStepStatus = 'not_started' | 'in_progress' | 'completed' | 'blocked';
 
-export interface PlanningParams {
+interface PlanningParams {
   command: PlanningCommand;
   plan_id?: string; // Unique identifier for the plan
   title?: string; // Title for the plan
@@ -14,6 +14,8 @@ export interface PlanningParams {
   step_notes?: string; // Additional notes for a step
 }
 
-export type PlanningResponse = {
+type PlanningResponse = {
   result: ToolResponse;
 }
+
+export type PlanningDetails = PlanningParams & PlanningResponse;

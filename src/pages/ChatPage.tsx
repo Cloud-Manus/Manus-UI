@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, FormEvent, useRef, ChangeEvent, DragEvent } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { SendIcon, ChevronLeftIcon, ChevronRightIcon, UploadIcon, DownloadIcon, StopCircleIcon, PlayIcon, PauseIcon, SkipBackIcon, SkipForwardIcon } from 'lucide-react';
+import { SendIcon, ChevronLeftIcon, ChevronRightIcon, UploadIcon, DownloadIcon, StopCircleIcon, PlayIcon, PauseIcon, SkipBackIcon, SkipForwardIcon, X } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Textarea } from '../components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from '../components/ui/card';
@@ -693,7 +693,7 @@ const ChatPage = () => {
     switch (event.type) {
       case EventType.thinking:
         return (
-          <div className={`rounded-md border py-1 px-3`}>
+          <div className={`rounded-md border py-2 px-3`}>
             <div className={styles.eventTitle}>Thinking:</div>
             <div className={styles.eventContent}>{event.content}</div>
           </div>
@@ -702,7 +702,7 @@ const ChatPage = () => {
       case EventType.tool_execute:
         return (
           <div
-            className={`rounded-md border py-1 px-3 ${isClickable ? styles.clickable : ''} ${isSelected ? styles.selected : ''}`}
+            className={`rounded-md border py-2 px-3 ${isClickable ? styles.clickable : ''} ${isSelected ? styles.selected : ''}`}
             onClick={handleClick}
             role={isClickable ? "button" : undefined}
             tabIndex={isClickable ? 0 : undefined}
@@ -722,7 +722,7 @@ const ChatPage = () => {
       case EventType.tool_completed:
         return (
           <div
-            className={`rounded-full border py-1 px-3 bg-white ${isClickable ? styles.clickable : ''} ${isSelected ? styles.selected : ''}`}
+            className={`rounded-full border py-2 px-3 bg-white ${isClickable ? styles.clickable : ''} ${isSelected ? styles.selected : ''}`}
             onClick={handleClick}
             role={isClickable ? "button" : undefined}
             tabIndex={isClickable ? 0 : undefined}
@@ -739,21 +739,21 @@ const ChatPage = () => {
         )
       case EventType.chat:
         return (
-          <div className={"rounded-md border py-1 px-3"}>
+          <div className={"rounded-md border py-2 px-3"}>
             <div className={styles.eventTitle}>Chat:</div>
             <div className={styles.eventContent}>{event.content}</div>
           </div>
         );
       case 'step':
         return (
-          <div className={"rounded-md border py-1 px-3"}>
+          <div className={"rounded-md border py-2 px-3"}>
             <div className={styles.eventTitle}>Step:</div>
             <div className={styles.eventContent}>{event.content}</div>
           </div>
         );
       default:
         return (
-          <div className={"rounded-md border p-3"}>
+          <div className={"rounded-md border py-2 p-3"}>
             <div className={styles.eventContent}>{event.content}</div>
           </div>
         );
@@ -981,9 +981,9 @@ const ChatPage = () => {
         <div className={styles.mainSection}>
           {((status && events.length > 0) || isReplaying) && (
             <Card className={styles.eventsCard}>
-              <CardHeader className="p-3">
-                <div className="flex justify-between items-center">
-                  <CardTitle className="text-xl">Task Progress</CardTitle>
+              <CardHeader className="p-0 pt-3 space-y-3">
+                <div className="flex justify-between items-center px-3">
+                  <CardTitle className="text-xl">任务进度</CardTitle>
                   <div className="flex items-center gap-2">
                     {getStatusBadge()}
                     {!isReplaying && recordedEvents.length > 0 && (
@@ -1027,12 +1027,11 @@ const ChatPage = () => {
                     )}
                   </div>
                 </div>
-                <CardDescription>Real-time updates from AI agent</CardDescription>
                 <Separator />
               </CardHeader>
-              <CardContent className="p-0 flex-1 flex flex-col overflow-x-auto">
-                <ScrollArea className="px-3 flex-1">
-                  <div className={styles.eventsContainer}>
+              <CardContent className="px-0 py-0 flex-1 flex flex-col overflow-hidden">
+                <ScrollArea className="flex-1 px-3 overflow-hidden">
+                  <div className={`${styles.eventsContainer} my-4`}>
                     {events.length === 0 ? (
                       <div className={styles.emptyState}>
                         {isReplaying ? 'Loading replay events...' : 'Waiting for task to start...'}
@@ -1081,41 +1080,31 @@ const ChatPage = () => {
 
         {expanded && (
           <div className={styles.visualSection}>
-            <Card className="h-full">
-              <CardHeader className="pb-3">
-                <div className="flex justify-between items-center">
+            <Card className="h-full flex flex-col">
+              <CardHeader className="p-0 pt-3 space-y-3">
+                <div className="flex justify-between items-center px-3">
                   <CardTitle className="text-xl">OpenManus's computer</CardTitle>
-                  <Badge variant="outline">Real-time</Badge>
+                  <Button variant="ghost" size="icon" onClick={() => setExpanded(false)}>
+                    <X size={14}></X>
+                  </Button>
                 </div>
-                <CardDescription>Watch AI actions in real-time</CardDescription>
                 <Separator />
               </CardHeader>
-              <CardContent className="p-0">
-                <ScrollArea className="h-[calc(100vh-350px)] px-4">
-                  {currentToolName && currentToolDetails ? (
-                    <ToolsWrapper 
-                      toolName={currentToolName} 
-                      toolDetails={currentToolDetails} 
-                    />
-                  ) : (
-                    <div className="flex items-center justify-center h-[300px] text-muted-foreground">
-                      No active tool visualization
-                    </div>
-                  )}
-                </ScrollArea>
+              <CardContent className="p-3 overflow-hidden">
+                {currentToolName && currentToolDetails ? (
+                  <ToolsWrapper 
+                    toolName={currentToolName} 
+                    toolDetails={currentToolDetails} 
+                  />
+                ) : (
+                  <div className="flex items-center justify-center h-[300px] text-muted-foreground">
+                    No active tool visualization
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
         )}
-
-        <Button 
-          variant="outline" 
-          size="icon" 
-          className={styles.expandButton}
-          onClick={() => setExpanded(!expanded)}
-        >
-          {expanded ? <ChevronRightIcon className="h-4 w-4" /> : <ChevronLeftIcon className="h-4 w-4" />}
-        </Button>
       </div>
       <div className="flex flex-col gap-2 mt-auto">
         {isReplaying && (

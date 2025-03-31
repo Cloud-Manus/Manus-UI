@@ -1,7 +1,9 @@
-export type TerminalParams = {
+type TerminalParams = {
   command: string;
 }
 
-export type TerminalResponse = {
+type TerminalResponse = {
   result: ToolResponse;
 }
+
+export type TerminalDetails = TerminalParams & TerminalResponse;
