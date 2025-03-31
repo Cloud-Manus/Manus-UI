@@ -1,0 +1,88 @@
+.browserUseWrapper {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 400px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background-color: #1e1e1e;
+}
+
+.actionHeader, .resultHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background-color: #252526;
+  border-bottom: 1px solid #333;
+  color: #e0e0e0;
+}
+
+.title {
+  font-weight: 500;
+  font-family: monospace;
+}
+
+.actionBadge {
+  background-color: #007acc; /* VS Code blue */
+  color: #fff;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.paramsSection {
+  padding: 1rem;
+  background-color: #1e1e1e;
+  border-bottom: 1px solid #333;
+}
+
+.sectionTitle {
+  font-weight: 500;
+  color: #e0e0e0;
+  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
+}
+
+.paramsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.paramItem {
+  display: flex;
+  flex-direction: column;
+  background-color: #252526;
+  padding: 0.75rem;
+  border-radius: 4px;
+  border: 1px solid #333;
+}
+
+.paramName {
+  font-weight: 500;
+  color: #9cdcfe; /* Light blue for property names */
+  margin-bottom: 0.25rem;
+  font-size: 0.85rem;
+}
+
+.paramValue {
+  color: #ce9178; /* Orange-pink for string values */
+  font-family: monospace;
+  word-break: break-all;
+  font-size: 0.85rem;
+}
+
+.noParams {
+  color: #6a9955; /* Green for comments */
+  font-style: italic;
+}
+
+.resultContainer {
+  flex-grow: 1;
+  width: 100%;
+  min-height: 200px;
+  background-color: #1e1e1e;
+} 

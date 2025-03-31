@@ -1,0 +1,187 @@
+.planningWrapper {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 400px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background-color: #1e1e1e;
+}
+
+.commandHeader, .resultHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background-color: #252526;
+  border-bottom: 1px solid #333;
+  color: #e0e0e0;
+}
+
+.title {
+  font-weight: 500;
+  font-family: monospace;
+}
+
+.commandBadge {
+  background-color: #6a5acd; /* Slate blue */
+  color: #fff;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.planInfo {
+  padding: 1rem;
+  background-color: #1e1e1e;
+  border-bottom: 1px solid #333;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.planId, .planTitle {
+  display: flex;
+  align-items: center;
+  font-size: 0.9rem;
+  color: #e0e0e0;
+}
+
+.label {
+  color: #9cdcfe; /* Light blue for property names */
+  font-weight: 500;
+  margin-right: 0.5rem;
+}
+
+.stepsSection {
+  padding: 1rem;
+  background-color: #1e1e1e;
+  border-bottom: 1px solid #333;
+}
+
+.sectionTitle {
+  font-weight: 500;
+  color: #e0e0e0;
+  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
+}
+
+.stepsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.stepItem {
+  display: flex;
+  background-color: #252526;
+  padding: 0.75rem;
+  border-radius: 4px;
+  border: 1px solid #333;
+  gap: 0.75rem;
+  
+  &.currentStep {
+    border-color: #6a5acd;
+    background-color: rgba(106, 90, 205, 0.1);
+  }
+}
+
+.stepNumber {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: #333;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.stepContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.stepText {
+  color: #e0e0e0;
+  font-size: 0.9rem;
+}
+
+.stepStatus {
+  display: inline-block;
+  padding: 0.1rem 0.5rem;
+  border-radius: 3px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.statusNotStarted {
+  background-color: #3a3d41;
+  color: #e0e0e0;
+}
+
+.statusInProgress {
+  background-color: #2c65c9;
+  color: #fff;
+}
+
+.statusCompleted {
+  background-color: #2ea043;
+  color: #fff;
+}
+
+.statusBlocked {
+  background-color: #da3633;
+  color: #fff;
+}
+
+.statusUnknown {
+  background-color: #5b4f39;
+  color: #fff;
+}
+
+.stepNotes {
+  color: #6a9955; /* Green for comments */
+  font-style: italic;
+  font-size: 0.85rem;
+  padding: 0.5rem;
+  background-color: rgba(106, 153, 85, 0.1);
+  border-radius: 3px;
+}
+
+.noSteps {
+  color: #6a9955; /* Green for comments */
+  font-style: italic;
+}
+
+.resultContainer {
+  flex-grow: 1;
+  width: 100%;
+  min-height: 150px;
+  background-color: #1e1e1e;
+  padding: 1rem;
+  overflow: auto;
+}
+
+.resultOutput {
+  font-family: monospace;
+  color: #e0e0e0;
+  font-size: 0.9rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  
+  pre {
+    margin: 0;
+  }
+}
+
+.noResult {
+  color: #6a9955; /* Green for comments */
+  font-style: italic;
+} 
