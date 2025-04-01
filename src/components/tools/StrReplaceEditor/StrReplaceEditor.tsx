@@ -1,10 +1,10 @@
-import type { StrReplaceEditorParams } from "@/types/tools/strReplaceEditor";
+import type { StrReplaceEditorDetails } from "@/types/tools/strReplaceEditor";
 import { useEffect, useRef } from "react";
 import * as monaco from "monaco-editor";
 import Window from "../Window/Window";
 
 interface StrReplaceEditorProps {
-  toolDetails: StrReplaceEditorParams & { result?: { output: string } };
+  toolDetails: StrReplaceEditorDetails;
 }
 
 const getLanguage = (path: string): string => {

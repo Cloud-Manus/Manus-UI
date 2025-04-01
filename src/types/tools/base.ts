@@ -6,18 +6,20 @@ import { CreateChatCompletionDetails } from "./createChatComopletion";
 import { PlanningDetails } from "./planning";
 import { TerminalDetails } from "./terminal";
 import { WebSearchDetails } from "./webSearch";
+import { PythonExecuteDetails } from "./pythonExecute";
 
 export enum ToolName {
-  "BaseTool" = "BaseTool",
-  "Bash" = "Bash",
-  "BrowserUseTool" = "BrowserUseTool",
-  "Terminate" = "Terminate",
-  "StrReplaceEditor" = "StrReplaceEditor",
-  "ToolCollection" = "ToolCollection",
-  "CreateChatCompletion" = "CreateChatCompletion",
-  "PlanningTool" = "PlanningTool",
-  "Terminal" = "Terminal",
-  "WebSearch" = "WebSearch",
+  "BaseTool" = "base_tool",
+  "Bash" = "bash",
+  "BrowserUseTool" = "browser_use",
+  "Terminate" = "terminate",
+  "StrReplaceEditor" = "str_replace_editor",
+  "ToolCollection" = "tool_collection",
+  "CreateChatCompletion" = "create_chat_completion",
+  "PlanningTool" = "planning",
+  "Terminal" = "terminal",
+  "WebSearch" = "web_search",
+  "PythonExecute" = "python_execute",
 }
 
 // Response type
@@ -29,12 +31,13 @@ export interface ToolResponse {
 }
 
 export type ToolDetails = {
-  browserUse?: BrowserUseDetails;
+  browser_use?: BrowserUseDetails;
   bash?: BashDetails;
   terminate?: TerminateDetails;
-  strReplaceEditor?: StrReplaceEditorDetails;
-  createChatCompletion?: CreateChatCompletionDetails;
+  str_replace_editor?: StrReplaceEditorDetails;
+  create_chat_completion?: CreateChatCompletionDetails;
   planning?: PlanningDetails;
   terminal?: TerminalDetails;
-  webSearch?: WebSearchDetails;
+  web_search?: WebSearchDetails;
+  python_execute?: PythonExecuteDetails;
 }

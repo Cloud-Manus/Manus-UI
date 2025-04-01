@@ -26,7 +26,7 @@ export default function Terminal({ toolDetails }: TerminalProps) {
         thumbBg="var(--dark-4)"
       >
         <code><span className="text-[var(--green-4)] font-bold mr-2">ubuntu@OpenManus:~ $</span>{formatCommand(toolDetails.command)}</code>
-        <code>{toolDetails.result}</code>
+        <code>{toolDetails.result.output || toolDetails.result.system || toolDetails.result.error}</code>
       </ScrollArea>
     </Window>
   );

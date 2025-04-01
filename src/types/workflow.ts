@@ -2,24 +2,26 @@ import type { ToolName, ToolDetails } from './tools/base';
 
 export enum EventType {
   "task_start" = "task_start", // 开始执行任务
-  "task_complete" = "task_complete", // 完成执行任务
-  "task_state_change" = "task_state_change", // 任务状态变化
-  "thinking" = "thinking",
+  "task_complete" = "complete", // 完成执行任务
+  "task_state_change" = "status", // 任务状态变化
+  "think" = "think",
   "chat" = "chat",
   "step" = "step",
   
   "tool_select" = "tool_select", // 选择工具
   "tool_execute" = "tool_execute", // 执行工具
-  "tool_completed" = "tool_completed", // 工具执行完成
+  "tool_used" = "toolUsed", // 工具执行完成
 
   "error" = "error",
+
+  "result" = "result",
 
   "update_token_count" = "update_token_count",
 }
 
 export type WorkflowBaseEvent = {
   id: string;
-  type: EventType.thinking | EventType.task_start | EventType.task_complete | EventType.step;
+  type: EventType.think | EventType.task_start | EventType.task_complete | EventType.step;
   step: number;
   content: string;
   timestamp: number;
@@ -31,11 +33,11 @@ export type WorkflowChatEvent = WorkflowBaseEvent & {
 };
 
 export type WorkflowToolEvent = WorkflowBaseEvent & {
-  type: EventType.tool_select | EventType.tool_execute | EventType.tool_completed;
-  toolsSelected?: ToolName[];
+  type: EventType.tool_select | EventType.tool_execute | EventType.tool_used;
+  tools_selected?: ToolName[];
   tool?: ToolName;
-  toolStatus?: "executing" | "success" | "fail";
-  toolDetails?: ToolDetails;
+  tool_status?: "executing" | "success" | "fail";
+  tool_detail?: ToolDetails;
 };
 
 enum TaskState {
@@ -47,10 +49,9 @@ enum TaskState {
 
 export type WorkflowTaskEvent = WorkflowBaseEvent & {
   type: EventType.task_start | EventType.task_complete | EventType.task_state_change;
-  agentStatus: TaskState;
+  agent_status: TaskState;
   request?: string;
   results?: string[];
-  curStep?: number;
 }
 
 export type WorkflowErrorEvent = WorkflowBaseEvent & {
@@ -60,7 +61,7 @@ export type WorkflowErrorEvent = WorkflowBaseEvent & {
 
 export type WorkflowTokenEvent = WorkflowBaseEvent & {
   type: EventType.update_token_count;
-  tokenCount: number;
+  token_count: number;
 }
 
 // export type WorkflowPlanEvent = WorkflowBaseEvent & {
@@ -81,12 +82,12 @@ export type WorkflowEvent = WorkflowChatEvent | WorkflowToolEvent | WorkflowTask
 export type Workflow = {
   id: string;
   prompt: string;
-  createdAt: number;
-  finishedAt?: number;
-  metaData?: {
-    planningModel: string;
-    VisModel: string;
-    toolsUsed: ToolName[];
+  created_at: number;
+  finished_at?: number;
+  meta_data?: {
+    planning_model: string;
+    Vis_model: string;
+    tools_used: ToolName[];
   };
   events: WorkflowEvent[];
 };

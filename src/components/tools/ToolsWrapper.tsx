@@ -1,3 +1,6 @@
+"use client";
+
+import { useCallback } from "react";
 import type { ToolDetails } from "@/types/tools/base";
 import { ToolName } from "@/types/tools/base";
 import StrReplaceEditor from "./StrReplaceEditor/StrReplaceEditor";
@@ -5,8 +8,9 @@ import Terminal from "./Terminal/Terminal";
 import WebSearch from "./WebSearch/WebSearch";
 import BrowserUse from "./BrowserUse/BrowserUse";
 import Planning from "./Planning/Planning";
-import { getToolName } from "./utils";
+import { getToolName } from "@/lib/utils";
 import ToolDesc from "./ToolDesc";
+import PythonExecute from "./PythonExecute/index";
 
 export default function ToolsWrapper({
   toolName,
@@ -15,11 +19,16 @@ export default function ToolsWrapper({
   toolName: ToolName;
   toolDetails: ToolDetails;
 }) {
-  const renderTool = () => {
+  const renderTool = useCallback(() => {
     switch (toolName) {
       case ToolName.StrReplaceEditor:
-        if (toolDetails.strReplaceEditor) {
-          return <StrReplaceEditor toolDetails={toolDetails.strReplaceEditor} />;
+        if (toolDetails.str_replace_editor) {
+          return <StrReplaceEditor toolDetails={toolDetails.str_replace_editor} />;
+        }
+        break;
+      case ToolName.PythonExecute:
+        if (toolDetails.python_execute) {
+          return <PythonExecute toolDetails={toolDetails.python_execute} />;
         }
         break;
       case ToolName.Bash:
@@ -33,13 +42,13 @@ export default function ToolsWrapper({
         }
         break;
       case ToolName.WebSearch:
-        if (toolDetails.webSearch) {
-          return <WebSearch toolDetails={toolDetails.webSearch} />;
+        if (toolDetails.web_search) {
+          return <WebSearch toolDetails={toolDetails.web_search} />;
         }
         break;
       case ToolName.BrowserUseTool:
-        if (toolDetails.browserUse) {
-          return <BrowserUse toolDetails={toolDetails.browserUse} />;
+        if (toolDetails.browser_use) {
+          return <BrowserUse toolDetails={toolDetails.browser_use} />;
         }
         break;
       case ToolName.PlanningTool:
@@ -56,7 +65,7 @@ export default function ToolsWrapper({
     }
     
     return <div className="p-4 text-muted-foreground">No valid tool details provided for {toolName}</div>;
-  };
+  }, [toolName, toolDetails]);
 
   return (
     <div className="flex flex-col w-full h-full overflow-hidden">

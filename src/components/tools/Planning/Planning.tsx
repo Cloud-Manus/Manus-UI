@@ -1,5 +1,4 @@
 import type { PlanningParams, PlanningResponse } from "@/types/tools/planning";
-import { useEffect, useRef } from "react";
 import styles from "./Planning.module.scss";
 
 interface PlanningProps {

@@ -91,18 +91,18 @@ export default function ToolDesc(
       setAction("正在执行命令");
       setObject(details.command);
     }
-    if (toolName === ToolName.BrowserUseTool && toolDetails.browserUse) {
-      const desc = getBrowserUseDesc(toolDetails.browserUse);
+    if (toolName === ToolName.BrowserUseTool && toolDetails.browser_use) {
+      const desc = getBrowserUseDesc(toolDetails.browser_use);
       setAction(desc.action);
       setObject(desc.object);
     }
-    if (toolName === ToolName.StrReplaceEditor && toolDetails.strReplaceEditor) {
-      const desc = getStrReplaceEditorDesc(toolDetails.strReplaceEditor);
+    if (toolName === ToolName.StrReplaceEditor && toolDetails.str_replace_editor) {
+      const desc = getStrReplaceEditorDesc(toolDetails.str_replace_editor);
       setAction(desc.action);
       setObject(desc.object);
     }
-    if (toolName === ToolName.WebSearch && toolDetails.webSearch) {
-      const details: WebSearchDetails = toolDetails.webSearch;
+    if (toolName === ToolName.WebSearch && toolDetails.web_search) {
+      const details: WebSearchDetails = toolDetails.web_search;
       setAction("正在进行网络搜索");
       setObject(details.query);
     }
@@ -110,8 +110,10 @@ export default function ToolDesc(
   }, [toolName, toolDetails]);
 
 
-  return <p className="flex items-center gap-2 font-subtle rounded-full w-full bg-[var(--gray-2)] px-2 py-0.5 overflow-hidden">
-    <span className="font-subtle-medmiu whitespace-nowrap">{action}</span>
-    <span className="inline-code text-ellipsis overflow-hidden whitespace-nowrap">{object}</span>
-  </p>
+  return action ? (
+    <p className="flex items-center gap-2 font-subtle rounded-full w-full bg-[var(--gray-2)] px-2 py-0.5 overflow-hidden">
+      <span className="font-subtle-medmiu whitespace-nowrap">{action}</span>
+      <span className="inline-code text-ellipsis overflow-hidden whitespace-nowrap">{object}</span>
+    </p>
+  ) : null;
 };

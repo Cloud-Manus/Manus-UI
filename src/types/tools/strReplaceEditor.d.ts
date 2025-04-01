@@ -5,7 +5,7 @@ import { ToolResponse } from "./base";
  */
 
 // Command type for the str_replace_editor tool
-type StrReplaceEditorCommand = 'view' | 'create' | 'str_replace' | 'insert' | 'undo_edit';
+export type StrReplaceEditorCommand = 'view' | 'create' | 'str_replace' | 'insert' | 'undo_edit';
 
 // Base interface for all str_replace_editor commands
 interface StrReplaceEditorBase {
