@@ -26,3 +26,4 @@ dist-ssr
 figma-assets
 
 replay-files
+.env

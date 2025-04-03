@@ -1,12 +1,10 @@
 import axios from 'axios';
 
-// Define the base URL for the API
-const API_URL = 'http://localhost:8000'; // Update to match your backend URL
-// const API_URL = 'http://148.153.121.178:35405'
+const API_HOST = process.env.VITE_API_HOST;
 
 // Create an axios instance
 const api = axios.create({
-  baseURL: API_URL,
+  baseURL: API_HOST,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -58,7 +56,7 @@ export const apiService = {
 
   // Function to create an EventSource for streaming task events
   createTaskEventSource: (taskId: string): EventSource => {
-    return new EventSource(`${API_URL}/tasks/${taskId}/events`);
+    return new EventSource(`${API_HOST}/tasks/${taskId}/events`);
   },
 
   terminateTask: async (taskId: string): Promise<void> => {
