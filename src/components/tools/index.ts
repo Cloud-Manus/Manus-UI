@@ -1,5 +1,4 @@
 export { default as StrReplaceEditor } from './StrReplaceEditor/StrReplaceEditor';
-export { default as Bash } from './Bash/Bash';
 export { default as Terminal } from './Terminal/Terminal';
 export { default as WebSearch } from './WebSearch/WebSearch';
 export { default as BrowserUse } from './BrowserUse/BrowserUse';

@@ -6,6 +6,7 @@ import ToolEvent from "./ToolEvent"
 import TaskCompleteEvent from "./CompleteEvent"
 import ErrorEvent from "./ErrorEvent"
 import ChatEvent from "./ChatEvent"
+import StatusEvent from "./StatusEvent"
 
 type EventItemProps = {
   event: DisplayStep;
@@ -25,6 +26,8 @@ export default function Event({ event, selected, onOpenTool }: EventItemProps) {
       return <ErrorEvent event={event} />
     case EventType.chat:
       return <ChatEvent event={event} />
+    case EventType.task_state_change:
+      return <StatusEvent event={event} />
     default:
       return <BaseEvent event={event} />
   }

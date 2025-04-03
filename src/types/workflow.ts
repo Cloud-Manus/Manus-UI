@@ -40,16 +40,17 @@ export type WorkflowToolEvent = WorkflowBaseEvent & {
   tool_detail?: ToolDetails;
 };
 
-enum TaskState {
-  IDLE = "IDLE",
-  RUNNING = "RUNNING",
-  FINISHED = "FINISHED",
-  ERROR = "ERROR"
+export enum TaskState {
+  "pending" = "pending",
+  "running" = "running",
+  "completed" = "completed",
+  "failed" = "failed",
+  "terminated" = "terminated"
 }
 
 export type WorkflowTaskEvent = WorkflowBaseEvent & {
   type: EventType.task_start | EventType.task_complete | EventType.task_state_change;
-  agent_status: TaskState;
+  status: TaskState;
   request?: string;
   results?: string[];
 }

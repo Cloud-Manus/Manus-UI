@@ -13,7 +13,7 @@ import styles from './ChatPage.module.scss';
 import ToolsWrapper from '../components/tools/ToolsWrapper';
 import type { ToolDetails } from '../types/tools/base';
 import { ToolName } from '../types/tools/base';
-import { EventType } from '@/types/workflow';
+import { EventType, TaskState } from '@/types/workflow';
 import Event from '../components/workflow/Event';
 
 // 定义重放状态类型
@@ -32,7 +32,7 @@ type SimpleWorkflowEvent = {
   tool_detail?: ToolDetails; // 与 workflow.ts 中的 WorkflowToolEvent.tool_detail 字段兼容
   tools_selected?: ToolName[]; // 与 workflow.ts 中的 WorkflowToolEvent.toolsSelected 字段兼容
   // 任务事件相关字段
-  agent_status?: string;
+  status?: TaskState;
   request?: string;
   results?: string[];
   // 聊天事件相关字段
@@ -62,9 +62,10 @@ export type DisplayStep = {
   tool?: ToolName;
   tool_status?: 'executing' | 'success' | 'fail';
   tool_detail?: ToolDetails;
-  agent_status?: string;
+  status?: string;
   error?: string;
   token_count?: number;
+  task_status?: TaskState;
 };
 
 const ChatPage = () => {
@@ -137,6 +138,9 @@ const ChatPage = () => {
       if (event.tool_detail) {
         displayStep.tool_detail = event.tool_detail;
       }
+    }
+    if (event.status) {
+      displayStep.task_status = event.status as TaskState;
     }
     
     return displayStep;
@@ -306,18 +310,19 @@ const ChatPage = () => {
     
     // 辅助函数：处理任务状态事件
     const handleTaskStateEvent = (data: SimpleWorkflowEvent) => {
-      if (!data.agent_status) return;
+      if (!data.status) return;
       
       const statusMap: Record<string, string> = {
-        'IDLE': 'idle',
-        'RUNNING': 'running',
-        'FINISHED': 'completed',
-        'ERROR': 'failed'
+        [TaskState.pending]: 'idle',
+        [TaskState.running]: 'running',
+        [TaskState.completed]: 'completed',
+        [TaskState.failed]: 'failed',
+        [TaskState.terminated]: 'terminated'
       };
-      setStatus(statusMap[data.agent_status] || data.agent_status);
+      setStatus(statusMap[data.status] || data.status);
       
       // 如果任务完成或出错，重置终止中状态
-      if (data.agent_status === 'FINISHED' || data.agent_status === 'ERROR') {
+      if (data.status === TaskState.completed || data.status === TaskState.failed || data.status === TaskState.terminated) {
         setIsTerminating(false);
       }
     };
@@ -1070,23 +1075,29 @@ const ChatPage = () => {
                 }
               }
             }}
-            className={`p-4 resize-none min-h-3`}
-            disabled={isReplaying || (status === 'completed' && !!currentTaskId)}
+            className={`p-2 resize-none min-h-3`}
+            disabled={isReplaying || (status !== "" && !!currentTaskId)}
             readOnly={isReplaying}
-            rows={3}
+            rows={2}
           />
           <div className="absolute flex gap-2 items-center bottom-2 right-2">
             <Button
               type="submit"
               size="xs"
-              disabled={createTaskMutation.isPending || !prompt.trim() || isReplaying || (status === 'completed' && !!currentTaskId)}
+              disabled={
+                createTaskMutation.isPending ||
+                !prompt.trim() ||
+                isReplaying ||
+                (status !== "" && !!currentTaskId)
+              }
             >
               {createTaskMutation.isPending ? '发送中...' : '发送'}
               <SendIcon size={14} className="ml-1" />
             </Button>
             {status === 'running' && !!currentTaskId && !isReplaying && (
               <Button 
-                variant="outline" 
+                variant="outline"
+                size="xs"
                 onClick={handleTerminateTask}
                 disabled={isTerminating}
                 className="flex items-center gap-1"
