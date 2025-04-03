@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback, FormEvent, useRef, ChangeEvent, DragEvent } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
 import { SendIcon, UploadIcon, DownloadIcon, StopCircleIcon, PlayIcon, PauseIcon, SkipBackIcon, SkipForwardIcon, X } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Textarea } from '../components/ui/textarea';
@@ -74,7 +73,6 @@ const ChatPage = () => {
   const [activePlanId, setActivePlanId] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const eventSourceRef = useRef<EventSource | null>(null);
-  const navigate = useNavigate();
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const dropZoneRef = useRef<HTMLDivElement>(null);
   const [replayState, setReplayState] = useState<ReplayState>('idle');
