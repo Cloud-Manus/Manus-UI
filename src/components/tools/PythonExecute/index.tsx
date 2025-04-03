@@ -2,7 +2,6 @@
 
 import { useRef, useEffect } from "react";
 import * as monaco from "monaco-editor";
-import { PythonExecuteDetails } from "@/types/tools/pythonExecute";
 import Window from "../Window/Window";
 
 interface TerminalProps {

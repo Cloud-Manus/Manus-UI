@@ -4,10 +4,10 @@ interface PythonExecuteParams {
 }
 
 type PythonExecuteResponse = {
-  result: {
+  result: ToolResponse & {
     observation: string;
     success: boolean;
   };
 }
 
-export type PythonExecuteDetails = PythonExecuteParams & PythonExecuteResponse;
+type PythonExecuteDetails = PythonExecuteParams & PythonExecuteResponse;

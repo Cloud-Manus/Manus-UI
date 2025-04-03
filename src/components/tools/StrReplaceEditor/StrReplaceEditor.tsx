@@ -1,4 +1,3 @@
-import type { StrReplaceEditorDetails } from "@/types/tools/strReplaceEditor";
 import { useEffect, useRef } from "react";
 import * as monaco from "monaco-editor";
 import Window from "../Window/Window";

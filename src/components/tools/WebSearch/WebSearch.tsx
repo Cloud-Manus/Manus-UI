@@ -1,4 +1,3 @@
-import type { WebSearchParams, WebSearchResponse } from "@/types/tools/webSearch";
 import styles from "./WebSearch.module.scss";
 
 interface WebSearchProps {

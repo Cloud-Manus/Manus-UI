@@ -8,4 +8,4 @@ type WebSearchResponse = {
   result: string[];
 }
 
-export type WebSearchDetails = WebSearchParams & WebSearchResponse;
+type WebSearchDetails = WebSearchParams & WebSearchResponse;

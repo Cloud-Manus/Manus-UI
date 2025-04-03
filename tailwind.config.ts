@@ -1,5 +1,6 @@
 import type { Config } from "tailwindcss";
 import colors from "tailwindcss/colors";
+import animatePlugin from "tailwindcss-animate";
 
 const config: Config = {
   darkMode: ["class"],
@@ -197,12 +198,30 @@ const config: Config = {
   				to: {
   					height: "0"
   				}
+  			},
+  			"gradient-x": {
+  				"0%, 100%": {
+  					"background-position": "0% 50%"
+  				},
+  				"50%": {
+  					"background-position": "100% 50%"
+  				}
+  			},
+  			"border-rotate": {
+  				"0%": {
+  					transform: "rotate(0deg)"
+  				},
+  				"100%": {
+  					transform: "rotate(360deg)"
+  				}
   			}
   		},
   		animation: {
   			"typing-dot-bounce": "typing-dot-bounce 1.25s ease-out infinite",
   			"accordion-down": "accordion-down 0.2s ease-out",
-  			"accordion-up": "accordion-up 0.2s ease-out"
+  			"accordion-up": "accordion-up 0.2s ease-out",
+  			"gradient": "gradient-x 3s ease infinite",
+  			"rotating-border": "border-rotate 4s linear infinite"
   		},
   		fontSize: {
   			"tremor-label": [
@@ -261,6 +280,6 @@ const config: Config = {
         /^(fill-(?:slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-(?:50|100|200|300|400|500|600|700|800|900|950))$/,
     },
   ],
-  plugins: [require("tailwindcss-animate")],
+  plugins: [animatePlugin],
 };
 export default config;

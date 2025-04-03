@@ -6,4 +6,4 @@ type TerminalResponse = {
   result: ToolResponse;
 }
 
-export type TerminalDetails = TerminalParams & TerminalResponse;
+type TerminalDetails = TerminalParams & TerminalResponse;

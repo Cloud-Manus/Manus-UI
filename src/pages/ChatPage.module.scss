@@ -24,12 +24,12 @@
     flex-direction: column;
     gap: 10px;
     max-width: 1080px;
+    overflow: hidden;
   }
   
   .visualSection {
     flex: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
+    overflow: hidden;
   }
   
   .eventsCard {

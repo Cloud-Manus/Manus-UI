@@ -1,5 +1,3 @@
-import type { ToolResponse } from "@/types/tools/base";
-
 // BrowserUseTool types
 type BrowserAction = 
   | 'go_to_url' 
@@ -38,7 +36,7 @@ interface RefreshParams extends BrowserUseBaseParams {
   action: 'refresh';
 }
 
-interface WebSearchParams extends BrowserUseBaseParams {
+interface BrowserWebSearchParams extends BrowserUseBaseParams {
   action: 'web_search';
   query: string;
 }
@@ -113,7 +111,7 @@ type BrowserUseParams =
   | GoToUrlParams
   | GoBackParams
   | RefreshParams
-  | WebSearchParams
+  | BrowserWebSearchParams
   | ClickElementParams
   | InputTextParams
   | ScrollParams
@@ -129,7 +127,7 @@ type BrowserUseParams =
 
 
 type BrowserUseResponse = {
-  result: ToolResponse;
+  result: ToolResponse & { url?: string };
 }
 
-export type BrowserUseDetails = BrowserUseParams & BrowserUseResponse;
+type BrowserUseDetails = BrowserUseParams & BrowserUseResponse;

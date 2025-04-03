@@ -10,4 +10,4 @@ type CreateChatCompletionResponse = {
   result: any;
 }
 
-export type CreateChatCompletionDetails = CreateChatCompletionParams & CreateChatCompletionResponse;
+type CreateChatCompletionDetails = CreateChatCompletionParams & CreateChatCompletionResponse;

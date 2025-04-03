@@ -1,4 +1,3 @@
-import type { PlanningParams, PlanningResponse } from "@/types/tools/planning";
 import styles from "./Planning.module.scss";
 
 interface PlanningProps {

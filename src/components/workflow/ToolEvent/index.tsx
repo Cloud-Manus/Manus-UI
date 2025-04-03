@@ -1,31 +1,12 @@
 import { useCallback, useMemo } from "react";
 import { DisplayStep } from "@/pages/ChatPage"
-import { EventType } from "@/types/workflow";
-import { ToolName } from "@/types/tools/base";
-import { BrowserAction } from "@/types/tools/browserUse";
-import { StrReplaceEditorCommand } from "@/types/tools/strReplaceEditor";
+import { ToolName } from "@/types/workflow";
 import { getToolName } from "@/lib/utils";
 import ChatEvent from "../ChatEvent";
 import { MarkdownRenderer } from "@/components/ui/standard/markdown-renderer";
-
-export const shouldOpenBrowser: BrowserAction[] = [
-  'go_to_url',
-  'go_back',
-  'web_search',
-]
-
-export const shouldOpenEditor: StrReplaceEditorCommand[] = [
-  'create',
-  'str_replace',
-  'insert',
-]
-
-export const shouldOpenTools: ToolName[] = [
-  ToolName.Bash,
-  ToolName.Terminal,
-  ToolName.WebSearch,
-  ToolName.PythonExecute,
-]
+import { ChevronRight } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { shouldOpenComputerForEvent } from "../utils";
 
 const ErrorMessage = ({ error }: { error: string }) => {
   return <div className="font-small">
@@ -43,30 +24,7 @@ export default function ToolEvent({
   onOpenTool?: () => void,
 }) {
   const clickable = useMemo(() => {
-    if (event.type !== EventType.tool_used || !event.tool) {
-      return false;
-    }
-    if (shouldOpenTools.includes(event.tool)) {
-      return true;
-    }
-
-    if (event.tool === ToolName.BrowserUseTool && event.tool_detail) {
-      const details = event.tool_detail.browser_use
-      if (details && shouldOpenBrowser.includes(details.action as BrowserAction) && !details.result.error) {
-        return true;
-      }
-      return false
-    }
-
-    if (event.tool === ToolName.StrReplaceEditor && event.tool_detail) {
-      const details = event.tool_detail.str_replace_editor
-      if (details && shouldOpenEditor.includes(details.command as StrReplaceEditorCommand)) {
-        return true;
-      }
-      return false
-    }
-
-    return false;
+    return shouldOpenComputerForEvent(event);
   }, [event])
 
   const toolDesc = useMemo(() => {
@@ -76,7 +34,7 @@ export default function ToolEvent({
         return `搜索 ${details.query}`
       }
       if (details.action === "extract_content") {
-        return `提取 ${details.goal} 相关内容`
+        return `在网页中提取相关内容`
       }
       if (details.action === "go_to_url") {
         return `浏览 ${details.url}`
@@ -133,18 +91,49 @@ export default function ToolEvent({
         return `撤销编辑文件 ${details.path}`
       }
     }
+    if (event.tool === ToolName.DeployWebsite && event.tool_detail?.deploy_website) {
+      const details = event.tool_detail.deploy_website
+      if (details.result.url) {
+        return `部署网站：${details.result.url}`
+      }
+    }
+    if (event.tool === ToolName.VerifyWebsite && event.tool_detail?.verify_website) {
+      const details = event.tool_detail.verify_website
+      if (details.success) {
+        return <>网站已可访问：<a href={details.url} target="_blank">{details.url}</a></>
+      }
+    }
+    if (event.tool === ToolName.R2Upload && event.tool_detail?.r2_upload) {
+      const details = event.tool_detail.r2_upload
+      if (details.file_name) {
+        return `上传文件 ${details.file_name} 到 R2，你可以访问 ${details.result.url}`
+      }
+      if (details.file_path) {
+        return `上传文件 ${details.file_path} 到 R2，你可以访问 ${details.result.url}`
+      }
+      if (details.content) {
+        return `上传内容 ${details.content} 到 R2，你可以访问 ${details.result.url}`
+      }
+    }
     return ""
   }, [event])
 
   const toolContent = useMemo(() => {
+    if (!event.tool_detail) {
+      return;
+    }
     if (event.error) {
       return <ErrorMessage error={event.error} />
     }
-    if (event.tool === ToolName.BrowserUseTool && event.tool_detail?.browser_use) {
-      const details = event.tool_detail.browser_use
-      if (details.result.error) {
+    const allDetails = Object.values(event.tool_detail || {})
+    for (const details of allDetails) {
+      if (details?.result?.error) {
         return <ErrorMessage error={details.result.error} />
       }
+    }
+
+    if (event.tool === ToolName.BrowserUseTool && event.tool_detail?.browser_use) {
+      const details = event.tool_detail.browser_use
       if (details.action === "extract_content") {
         let output = details.result.output;
         output = output.replace("Extracted from page:", "").trim();
@@ -169,31 +158,19 @@ export default function ToolEvent({
         }
       }
     }
-    if (event.tool === ToolName.StrReplaceEditor && event.tool_detail?.str_replace_editor) {
-      const details = event.tool_detail.str_replace_editor
-      if (details.result.error) {
-        return <ErrorMessage error={details.result.error} />
+    if (event.tool === ToolName.DeployWebsite && event.tool_detail?.deploy_website) {
+      const details = event.tool_detail.deploy_website
+      if (details.entry_url) {
+        return <>部署成功：<a href={details.entry_url} target="_blank">{details.entry_url}</a></>
       }
     }
-    if (event.tool === ToolName.Bash && event.tool_detail?.bash) {
-      const details = event.tool_detail.bash
-      if (details.result.error) {
-        return <ErrorMessage error={details.result.error} />
+    if (event.tool === ToolName.PythonExecute && event.tool_detail?.python_execute) {
+      const details = event.tool_detail.python_execute
+      if (details.result.output) {
+        return details.result.output;
       }
     }
-    if (event.tool === ToolName.PlanningTool && event.tool_detail?.planning) {
-      const details = event.tool_detail.planning
-      if (details.result.error) {
-        return <ErrorMessage error={details.result.error} />
-      }
-    }
-    if (event.tool === ToolName.Terminal && event.tool_detail?.terminal) {
-      const details = event.tool_detail.terminal
-      if (details.result.error) {
-        return <ErrorMessage error={details.result.error} />
-      }
-    }
-    return "";
+    return;
   }, [event])
 
   const handleClick = useCallback(() => {
@@ -202,8 +179,8 @@ export default function ToolEvent({
     }
   }, [clickable, onOpenTool])
 
-  if (event.tool === ToolName.Terminate) {
-    return <div className="rounded-full border py-1 px-3 bg-[var(--red-6)] text-[var(--red-2)] font-subtle-medium">任务终止</div>
+  if (event.tool === ToolName.Terminate || event.tool === ToolName.Finish) {
+    return null;
   }
 
   if (event.tool === ToolName.CreateChatCompletion) {
@@ -211,15 +188,22 @@ export default function ToolEvent({
   }
 
   return <div
-    className={`relative ${clickable ? "cursor-pointer rounded-full" : "rounded-lg"} border py-1 px-3 overflow-hidden ${isSelected && clickable ? "bg-[var(--dark-1)] text-white" : 'bg-[var(--gray-2)]'} transition-colors`}
+    className={cn("max-w-[800px] relative flex items-center justify-between gap-2",
+      `${clickable ? "cursor-pointer shadow-md" : ""}`,
+      `${isSelected && clickable ? "bg-[var(--dark-1)] text-white" : 'bg-[var(--gray-2)]'}`,
+      "rounded-lg border py-1 px-3 overflow-hidden transition-colors"
+    )}
     onClick={handleClick}
     role={clickable ? "button" : undefined}
   >
-    {event.tool && <span className="font-subtle-medium mr-2">正在使用{getToolName(event.tool)}</span>}
-    {toolDesc && <span className="font-small-medium mr-2">{toolDesc}</span>}
-    {toolContent && <div className="mt-2">
-      {toolContent}
-    </div>}
+    <div className="flex-1">
+      {event.tool && <span className="font-subtle-medium mr-1">使用{getToolName(event.tool)}</span>}
+      {toolDesc && <span className="font-subtle-medium">{toolDesc}</span>}
+      {toolContent && <div className="mt-2 font-subtle">
+        {toolContent}
+      </div>}
+    </div>
+    {clickable && <ChevronRight size={16} />}
     {/* {event.content && <span className="font-subtle overflow-hidden text-ellipsis whitespace-nowrap">{event.content}</span>} */}
   </div>
 }

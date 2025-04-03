@@ -1,13 +1,11 @@
 "use client";
 
 import { useCallback } from "react";
-import type { ToolDetails } from "@/types/tools/base";
-import { ToolName } from "@/types/tools/base";
+import { ToolName } from "@/types/workflow";
 import StrReplaceEditor from "./StrReplaceEditor/StrReplaceEditor";
 import Terminal from "./Terminal/Terminal";
 import WebSearch from "./WebSearch/WebSearch";
 import BrowserUse from "./BrowserUse/BrowserUse";
-import Planning from "./Planning/Planning";
 import { getToolName } from "@/lib/utils";
 import ToolDesc from "./ToolDesc";
 import PythonExecute from "./PythonExecute/index";
@@ -51,11 +49,6 @@ export default function ToolsWrapper({
           return <BrowserUse toolDetails={toolDetails.browser_use} />;
         }
         break;
-      case ToolName.PlanningTool:
-        if (toolDetails.planning) {
-          return <Planning toolDetails={toolDetails.planning} />;
-        }
-        break;
       // 其他工具组件将在未来实现
       case ToolName.Terminate:
       case ToolName.CreateChatCompletion:
@@ -71,7 +64,12 @@ export default function ToolsWrapper({
     <div className="flex flex-col w-full h-full overflow-hidden">
       <div className="flex flex-col gap-3 h-full">
         <div className="flex flex-col justify-start items-start gap-1">
-          <p className="font-small">OpenManus 正在使用 <span className="font-small-medium bg-[var(--gray-2)] rounded-sm px-1 py-0.5">{getToolName(toolName)}</span></p>
+          <p className="font-small">
+            OpenManus 正在使用
+            <span className="font-small-medium bg-[var(--gray-2)] rounded-sm px-1 py-0.5">
+              {getToolName(toolName)}
+            </span>
+          </p>
           <ToolDesc toolName={toolName} toolDetails={toolDetails} />
         </div>
         <div className="flex flex-col flex-1 overflow-hidden gap-3">

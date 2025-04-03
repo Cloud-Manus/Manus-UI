@@ -1,4 +1,3 @@
-import { ScrollArea } from "@/components/ui/scroll-area"
 import { DisplayStep } from "@/pages/ChatPage";
 import {
   Accordion,
@@ -22,9 +21,9 @@ export default function ThinkEvent({ event }: { event: DisplayStep }) {
       <AccordionItem className="border-0" value="thinking">
         <AccordionTrigger className="p-0 !no-underline font-subtle-medium">思考中...</AccordionTrigger>
         <AccordionContent className="pt-1 pb-2">
-          <ScrollArea className="w-[500px]" viewportClassName="max-h-[300px] pr-3">
+          <div className="w-[500px] max-h-[300px]">
             <div className="font-small text-[var(--dark-4)]">{event.content}</div>
-          </ScrollArea>
+          </div>
         </AccordionContent>
       </AccordionItem>
     </Accordion>

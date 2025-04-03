@@ -7,4 +7,4 @@ type TerminateResponse = {
   result: string;
 }
 
-export type TerminateDetails = TerminateParams & TerminateResponse;
+type TerminateDetails = TerminateParams & TerminateResponse;

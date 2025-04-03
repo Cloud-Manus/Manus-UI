@@ -1,5 +1,3 @@
-import { ToolResponse } from './tools';
-
 // PlanningTool types
 type PlanningCommand = 'create' | 'update' | 'list' | 'get' | 'set_active' | 'mark_step' | 'delete';
 type PlanStepStatus = 'not_started' | 'in_progress' | 'completed' | 'blocked';
@@ -18,4 +16,4 @@ type PlanningResponse = {
   result: ToolResponse;
 }
 
-export type PlanningDetails = PlanningParams & PlanningResponse;
+type PlanningDetails = PlanningParams & PlanningResponse;

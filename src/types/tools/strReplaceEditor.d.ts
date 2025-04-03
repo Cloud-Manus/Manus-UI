@@ -1,11 +1,9 @@
-import { ToolResponse } from "./base";
-
 /**
  * Type definitions for StrReplaceEditor tool
  */
 
 // Command type for the str_replace_editor tool
-export type StrReplaceEditorCommand = 'view' | 'create' | 'str_replace' | 'insert' | 'undo_edit';
+type StrReplaceEditorCommand = 'view' | 'create' | 'str_replace' | 'insert' | 'undo_edit';
 
 // Base interface for all str_replace_editor commands
 interface StrReplaceEditorBase {
@@ -45,15 +43,15 @@ interface StrReplaceEditorUndoEditParams extends StrReplaceEditorBase {
 }
 
 // Union type for all str_replace_editor parameter types
-export type StrReplaceEditorParams = 
+type StrReplaceEditorParams = 
   | StrReplaceEditorViewParams
   | StrReplaceEditorCreateParams 
   | StrReplaceEditorStrReplaceParams
   | StrReplaceEditorInsertParams
   | StrReplaceEditorUndoEditParams;
 
-export type StrReplaceEditorResponse = {
+type StrReplaceEditorResponse = {
   result: ToolResponse;
 }
 
-export type StrReplaceEditorDetails = StrReplaceEditorParams & StrReplaceEditorResponse;
+type StrReplaceEditorDetails = StrReplaceEditorParams & StrReplaceEditorResponse;

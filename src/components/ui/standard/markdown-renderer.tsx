@@ -144,11 +144,12 @@ function childrenTakeAllStringContents(element: any): string {
 }
 
 const COMPONENTS = {
-  h1: withClass("h1", "text-2xl font-semibold"),
-  h2: withClass("h2", "font-semibold text-xl"),
-  h3: withClass("h3", "font-semibold text-lg"),
-  h4: withClass("h4", "font-semibold text-base"),
-  h5: withClass("h5", "font-medium"),
+  p: withClass("p", "font-subtle whitespace-pre-wrap"),
+  h1: withClass("h1", "my-2 font-h3"),
+  h2: withClass("h2", "my-2 font-h4"),
+  h3: withClass("h3", "my-2 font-h5"),
+  h4: withClass("h4", "my-1 font-p-medium text-base"),
+  h5: withClass("h5", "my-1 font-subtle-medium"),
   strong: withClass("strong", "font-semibold"),
   a: withClass("a", "text-primary underline underline-offset-2"),
   blockquote: withClass("blockquote", "border-l-2 border-primary pl-4"),
@@ -170,12 +171,12 @@ const COMPONENTS = {
     );
   },
   pre: ({ children }: any) => children,
-  ol: withClass("ol", "list-decimal space-y-2 pl-6"),
-  ul: withClass("ul", "list-disc space-y-2 pl-6"),
+  ol: withClass("ol", "font-subtle list-decimal space-y-2 pl-6"),
+  ul: withClass("ul", "font-subtle list-disc space-y-2 pl-6"),
   li: withClass("li", "my-1.5"),
   table: withClass(
     "table",
-    "w-full border-collapse overflow-y-auto rounded-md border border-foreground/20",
+    "w-full border-collapse overflow-y-auto rounded-md border border-foreground/20 font-subtle",
   ),
   th: withClass(
     "th",
@@ -186,7 +187,6 @@ const COMPONENTS = {
     "border border-foreground/20 px-4 py-2 text-left [&[align=center]]:text-center [&[align=right]]:text-right",
   ),
   tr: withClass("tr", "m-0 border-t p-0 even:bg-muted"),
-  p: withClass("p", "whitespace-pre-wrap"),
   hr: withClass("hr", "border-foreground/20"),
 };
 

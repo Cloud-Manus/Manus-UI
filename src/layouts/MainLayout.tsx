@@ -1,5 +1,4 @@
-import { Link, Outlet } from 'react-router-dom';
-import { HomeIcon, ListIcon } from 'lucide-react';
+import { Outlet } from 'react-router-dom';
 import styles from './MainLayout.module.scss';
 
 const MainLayout = () => {

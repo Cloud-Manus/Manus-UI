@@ -1,5 +1,3 @@
-import { ToolResponse } from "./base";
-
 // Bash tool types
 interface BashParams {
   command: string; // The bash command to execute
@@ -10,4 +8,4 @@ type BashResponse = {
   result: ToolResponse;
 }
 
-export type BashDetails = BashParams & BashResponse;
+type BashDetails = BashParams & BashResponse;
