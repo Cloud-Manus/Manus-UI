@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, FormEvent, useRef, ChangeEvent, DragEvent } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { SendIcon, UploadIcon, DownloadIcon, StopCircleIcon, PlayIcon, PauseIcon, SkipBackIcon, SkipForwardIcon, X } from 'lucide-react';
+import { SendIcon, UploadIcon, DownloadIcon, StopCircleIcon, PlayIcon, PauseIcon, SkipBackIcon, SkipForwardIcon, X, ArrowDownToLine } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Textarea } from '../components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
@@ -12,6 +12,7 @@ import { ToolName } from '@/types/workflow';
 import { EventType, TaskState, PlanStep, SimpleWorkflowEvent } from '@/types/workflow';
 import Event from '../components/workflow/Event';
 import { shouldOpenComputerForEvent } from '@/components/workflow/utils';
+import { useAutoScroll } from '../components/hooks/use-auto-scroll';
 
 // 定义重放状态类型
 type ReplayState = 'idle' | 'playing' | 'paused';
@@ -978,6 +979,20 @@ const ChatPage = () => {
     createTaskMutation.mutate(prompt);
   };
 
+  const [isScrollingToBottom, setIsScrollingToBottom] = useState(false);
+  const { containerRef, handleScroll, shouldAutoScroll, scrollToBottom: originalScrollToBottom } = useAutoScroll([events]);
+  
+  // Wrapper for scrollToBottom with stabilization
+  const scrollToBottom = () => {
+    setIsScrollingToBottom(true);
+    originalScrollToBottom();
+    
+    // Add a delay before allowing the button to reappear
+    setTimeout(() => {
+      setIsScrollingToBottom(false);
+    }, 300);
+  };
+
   return (
     <div className={`h-full flex flex-col gap-4 w-full ${expanded ? '' : 'max-w-[1080px] mx-auto'}`}>
       <input
@@ -1021,7 +1036,11 @@ const ChatPage = () => {
                 <Separator />
               </CardHeader>
               <CardContent className="px-0 py-0 flex-1 flex flex-col overflow-hidden">
-                <div className="scrollable flex-1 px-3">
+                <div 
+                  className="scrollable flex-1 px-3"
+                  ref={containerRef}
+                  onScroll={handleScroll}
+                >
                   <div className={`${styles.eventsContainer} my-4`}>
                     {events.length === 0 && !isReplaying ? (
                       <div className={styles.emptyState}>
@@ -1041,6 +1060,18 @@ const ChatPage = () => {
                       </div>
                     )}
                   </div>
+                  {!shouldAutoScroll && !isScrollingToBottom && (
+                    <div className="sticky bottom-8 left-0 flex justify-end">
+                      <Button
+                        onClick={scrollToBottom}
+                        className="bg-white h-8 w-8 rounded-full border shadow-sm"
+                        size="icon"
+                        variant="ghost"
+                      >
+                        <ArrowDownToLine size={14} />
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
