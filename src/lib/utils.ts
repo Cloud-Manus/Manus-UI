@@ -28,7 +28,45 @@ export function getToolName(toolName: ToolName) {
       return "部署工具";
     case ToolName.VerifyWebsite:
       return "网站验证工具";
+    case ToolName.FileSaver:
+      return "文件管理器";
   }
 
   return "";
 }
+
+export const getCodeLanguage = (path: string): string => {
+  const extension = path.split(".").pop();
+  switch (extension) {
+    case "js":
+      return "javascript";
+    case "ts":
+      return "typescript";
+    case "py":
+      return "python";
+    case "sh":
+      return "bash";
+    case "html":
+      return "html";
+    case "css":
+      return "css";
+    case "json":
+      return "json";
+    case "md":
+      return "markdown";
+    case "txt":
+      return "plaintext";
+    case "xml":
+      return "xml";
+    case "yaml":
+      return "yaml";
+    case "yml":
+      return "yaml";
+    case "toml":
+      return "toml";
+    case "ini":
+      return "ini";
+    default:
+      return "plaintext";
+  }
+};

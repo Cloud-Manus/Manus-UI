@@ -234,25 +234,6 @@ input:-webkit-autofill:active {
   caret-color: var(--dark-1) !important;
 }
 
-textarea::-webkit-scrollbar,
-.scrollBar_container::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-textarea::-webkit-scrollbar,
-.scrollBar_container::-webkit-scrollbar-track {
-  background: var(--gray-2);
-}
-textarea::-webkit-scrollbar,
-.scrollBar_container::-webkit-scrollbar-thumb {
-  background: var(--dark-7);
-  border-radius: 3px;
-}
-textarea::-webkit-scrollbar,
-.scrollBar_container::-webkit-scrollbar-corner {
-  background: var(--gray-2);
-}
-
 a {
   color: var(--brand-0);
   text-decoration: underline;

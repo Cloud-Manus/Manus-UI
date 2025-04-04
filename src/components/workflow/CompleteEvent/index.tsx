@@ -22,10 +22,10 @@ export default function TaskCompleteEvent({ event }: { event: DisplayStep }) {
       <div className="absolute inset-0 rounded-lg overflow-hidden">
         {/* Larger gradient background that rotates */}
         <div 
-          className="absolute w-[200vw] h-[200vh] animate-rotating-border origin-center"
+          className="absolute w-[400vw] h-[400vw] animate-rotating-border origin-center"
           style={{
             background: 'conic-gradient(from 0deg, #8b5cf6, #ec4899, #ef4444, #eab308, #22c55e, #3b82f6, #8b5cf6)',
-            inset: '-100vw -100vh',
+            inset: '-50% -200vw',
           }}
         ></div>
       </div>

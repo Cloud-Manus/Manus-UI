@@ -115,6 +115,12 @@ export default function ToolEvent({
         return `上传内容 ${details.content} 到 R2，你可以访问 ${details.result.url}`
       }
     }
+    if (event.tool === ToolName.FileSaver && event.tool_detail?.file_saver) {
+      const details = event.tool_detail.file_saver
+      if (details.file_path) {
+        return `保存文件 ${details.file_path}`
+      }
+    }
     return ""
   }, [event])
 

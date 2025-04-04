@@ -29,13 +29,14 @@ export enum ToolName {
   "ToolCollection" = "tool_collection",
   "CreateChatCompletion" = "create_chat_completion",
   "PlanningTool" = "planning",
-  "Terminal" = "terminal",
+  "Terminal" = "execute_command",
   "WebSearch" = "web_search",
   "PythonExecute" = "python_execute",
   "R2Upload" = "r2_upload",
   "DeployWebsite" = "deploy_website",
   "VerifyWebsite" = "verify_website",
   "Finish" = "finish",
+  "FileSaver" = "file_saver",
 }
 
 export type WorkflowBaseEvent = {

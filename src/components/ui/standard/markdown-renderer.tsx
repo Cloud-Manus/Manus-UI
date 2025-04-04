@@ -10,14 +10,15 @@ import { cn } from "@/lib/utils";
 
 interface MarkdownRendererProps {
   children: string;
+  small?: boolean;
 }
 
-export function MarkdownRenderer({ children }: MarkdownRendererProps) {
+export function MarkdownRenderer({ children, small = false }: MarkdownRendererProps) {
   return (
     <Markdown
       remarkPlugins={[remarkGfm, remarkMath]}
       rehypePlugins={[rehypeKatex]}
-      components={COMPONENTS}
+      components={small ? SMALL_COMPONENTS : COMPONENTS}
       // className="space-y-3"
     >
       {children}
@@ -189,6 +190,53 @@ const COMPONENTS = {
   tr: withClass("tr", "m-0 border-t p-0 even:bg-muted"),
   hr: withClass("hr", "border-foreground/20"),
 };
+
+const SMALL_COMPONENTS = {
+  p: withClass("p", "font-small whitespace-pre-wrap"),
+  h1: withClass("h1", "my-1 font-h4"),
+  h2: withClass("h2", "my-1 font-h5"),
+  h3: withClass("h3", "my-1 font-p-medium"),
+  h4: withClass("h4", "my-1 font-subtle-medium text-base"),
+  h5: withClass("h5", "my-1 font-subtle-medium"),
+  strong: withClass("strong", "font-semibold"),
+  a: withClass("a", "text-primary underline underline-offset-2"),
+  blockquote: withClass("blockquote", "border-l-2 border-primary pl-4"),
+  code: ({ children, className, ...rest }: any) => {
+    const match = /language-(\w+)/.exec(className || "");
+    return match ? (
+      <CodeBlock className={className} language={match[1]} {...rest}>
+        {children}
+      </CodeBlock>
+    ) : (
+      <code
+        className={cn(
+          "font-mono [:not(pre)>&]:rounded-md [:not(pre)>&]:bg-background/50 [:not(pre)>&]:px-1 [:not(pre)>&]:py-0.5",
+        )}
+        {...rest}
+      >
+        {children}
+      </code>
+    );
+  },
+  pre: ({ children }: any) => children,
+  ol: withClass("ol", "font-small list-decimal space-y-0 pl-3"),
+  ul: withClass("ul", "font-small list-disc space-y-0 pl-3"),
+  li: withClass("li", "mt-0"),
+  table: withClass(
+    "table",
+    "w-full border-collapse overflow-y-auto rounded-md border border-foreground/20 font-small",
+  ),
+  th: withClass(
+    "th",
+    "border border-foreground/20 px-2 py-1 text-left font-bold [&[align=center]]:text-center [&[align=right]]:text-right",
+  ),
+  td: withClass(
+    "td",
+    "border border-foreground/20 px-2 py-1 text-left [&[align=center]]:text-center [&[align=right]]:text-right",
+  ),
+  tr: withClass("tr", "m-0 border-t p-0 even:bg-muted"),
+  hr: withClass("hr", "border-foreground/20"),
+}
 
 function withClass(Tag: keyof React.JSX.IntrinsicElements, classes: string) {
   const Component = ({ ...props }: any) => (

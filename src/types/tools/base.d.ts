@@ -19,4 +19,5 @@ type ToolDetails = {
   r2_upload?: R2UploadDetails;
   deploy_website?: DeployWebsiteDetails;
   verify_website?: VerifyWebsiteDetails;
+  file_saver?: FileSaverDetails;
 }

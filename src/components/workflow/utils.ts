@@ -13,6 +13,7 @@ const shouldOpenTools: ToolName[] = [
   ToolName.Terminal,
   ToolName.WebSearch,
   ToolName.PythonExecute,
+  ToolName.FileSaver,
 ]
 
 export function shouldOpenComputerForEvent(event: DisplayStep | SimpleWorkflowEvent) {

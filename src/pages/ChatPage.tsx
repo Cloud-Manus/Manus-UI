@@ -1061,7 +1061,7 @@ const ChatPage = () => {
                     )}
                   </div>
                   {!shouldAutoScroll && !isScrollingToBottom && (
-                    <div className="sticky bottom-8 left-0 flex justify-end">
+                    <div className="sticky bottom-8 left-0 flex justify-end z-20">
                       <Button
                         onClick={scrollToBottom}
                         className="bg-white h-8 w-8 rounded-full border shadow-sm"
@@ -1234,30 +1234,30 @@ const ChatPage = () => {
             readOnly={isReplaying}
             rows={2}
           />
-          <div className="absolute flex gap-2 items-center bottom-2 right-2">
-            <Button
-              type="submit"
-              size="xs"
-              disabled={
-                createTaskMutation.isPending ||
-                !prompt.trim() ||
-                isReplaying ||
-                (status !== "" && !!currentTaskId)
-              }
-            >
-              {createTaskMutation.isPending ? '发送中...' : '发送'}
-              <SendIcon size={14} className="ml-1" />
-            </Button>
-            {status === 'running' && !!currentTaskId && !isReplaying && (
+          <div className="absolute flex gap-2 items-center bottom-2 right-4">
+            {status === 'running' ? !!currentTaskId && !isReplaying && (
               <Button 
                 variant="outline"
-                size="xs"
+                size="sm"
                 onClick={handleTerminateTask}
                 disabled={isTerminating}
                 className="flex items-center gap-1"
               >
-                <StopCircleIcon className="mr-2 h-4 w-4" />
-                {isTerminating ? '停止中...' : '停止任务'}
+                <StopCircleIcon size={18} />
+              </Button>
+            ) : (
+              <Button
+                type="submit"
+                variant="outline"
+                size="sm"
+                disabled={
+                  createTaskMutation.isPending ||
+                  !prompt.trim() ||
+                  isReplaying ||
+                  (status !== "" && !!currentTaskId)
+                }
+              >
+                <SendIcon size={18} />
               </Button>
             )}
           </div>
@@ -1276,6 +1276,16 @@ export default ChatPage;
 /**
  * 最近美国有一件新闻比较火：一位记者误入了美国白宫高层的一个 Signal 群聊，然后在群内看到美国政府首脑们如儿戏一般地做出了对也门胡塞武装发动袭击的决定。
 请检索此事相关的互联网信息，如对外披露的群聊记录等，制作一款简单的 web 端文字冒险游戏，在该游戏中玩家扮演被拉入群聊的记者，在群内假扮政府官员与其他官员和总统 Trump 进行群聊，目标为阻止美国的下一步行动。
-要求拥有一个类似聊天 app 的界面，上面有头像、对话气泡等元素，创建多个美国政要的角色，模拟他们的语气在群里发言。设置当对话进行到一些关键节点时，给玩家提供几个选项，让玩家作出选择。
+要求拥有一个类似聊天 app 的界面，上面有头像、对话气泡等元素，创建多个美国政要的角色（其中总统特朗普为主角），模拟他们的语气在群里发言。设置当对话进行到一些关键节点时，给玩家提供几个选项，让玩家作出选择。群聊需要进行多轮对话，给玩家的选择次数不小于三次。
 我需要你完成开发后，将这个项目编译成静态文件，然后将静态文件部署到公开网络上供人访问和游玩。
+ */
+
+/**
+A recent news story in the U.S. has gained attention: a journalist accidentally joined a high-level Signal group chat among top White House officials. In the chat, they witnessed the U.S. leadership casually making the decision to launch an attack on Yemen’s Houthi forces, almost like a game.
+
+Please research this event online, including any publicly disclosed chat logs, and create a simple web-based text adventure game. In the game, the player assumes the role of the journalist who was accidentally added to the group. They must pretend to be a government official and chat with other officials and President Trump, with the goal of preventing the next military action.
+
+The game should feature an interface similar to a chat app, with avatars, chat bubbles, and other typical UI elements. Create multiple characters based on real American political figures (with President Trump as the central character), and simulate their tones and styles in the group chat. At key points in the conversation, the player should be given multiple choices that affect the outcome. The chat should span multiple rounds, and the player must be given at least three opportunities to make decisions.
+
+After developing the project, compile it into static files and deploy it as a static website so that everyone can play the game.
  */

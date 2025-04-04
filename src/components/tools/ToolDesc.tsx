@@ -82,28 +82,40 @@ export default function ToolDesc(
       const details: BashDetails = toolDetails.bash;
       setAction("执行命令");
       setObject(details.command);
+      return;
     }
     if (toolName === ToolName.Terminal && toolDetails.terminal) {
       const details: TerminalDetails = toolDetails.terminal;
       setAction("执行命令");
       setObject(details.command);
+      return;
     }
     if (toolName === ToolName.BrowserUseTool && toolDetails.browser_use) {
       const desc = getBrowserUseDesc(toolDetails.browser_use);
       setAction(desc.action);
       setObject(desc.object);
+      return;
     }
     if (toolName === ToolName.StrReplaceEditor && toolDetails.str_replace_editor) {
       const desc = getStrReplaceEditorDesc(toolDetails.str_replace_editor);
       setAction(desc.action);
       setObject(desc.object);
+      return;
     }
     if (toolName === ToolName.WebSearch && toolDetails.web_search) {
       const details: WebSearchDetails = toolDetails.web_search;
       setAction("进行网络搜索");
       setObject(details.query);
+      return;
     }
-
+    if (toolName === ToolName.FileSaver && toolDetails.file_saver) {
+      const details: FileSaverDetails = toolDetails.file_saver;
+      setAction(details.mode === "a" ? "增加文件内容" : "保存文件");
+      setObject(details.file_path);
+      return;
+    }
+    setAction("");
+    setObject("");
   }, [toolName, toolDetails]);
 
 

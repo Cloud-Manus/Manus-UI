@@ -9,6 +9,7 @@ import BrowserUse from "./BrowserUse/BrowserUse";
 import { getToolName } from "@/lib/utils";
 import ToolDesc from "./ToolDesc";
 import PythonExecute from "./PythonExecute/index";
+import FileSaver from "./FileSaver/FileSaver";
 
 export default function ToolsWrapper({
   toolName,
@@ -47,6 +48,11 @@ export default function ToolsWrapper({
       case ToolName.BrowserUseTool:
         if (toolDetails.browser_use) {
           return <BrowserUse toolDetails={toolDetails.browser_use} />;
+        }
+        break;
+      case ToolName.FileSaver:
+        if (toolDetails.file_saver) {
+          return <FileSaver toolDetails={toolDetails.file_saver} />;
         }
         break;
       // 其他工具组件将在未来实现
