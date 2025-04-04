@@ -44,6 +44,13 @@ export type DisplayStep = {
   terminated?: boolean;
 };
 
+// 定义用户消息类型
+type UserMessage = {
+  id: string;
+  content: string;
+  timestamp: number;
+};
+
 function getTaskStatusTitle(status: TaskState | "replaying" | "") {
   switch (status) {
     case TaskState.running:
@@ -93,9 +100,7 @@ const ChatPage = () => {
   const [currentToolDetails, setCurrentToolDetails] = useState<ToolDetails | null>(null);
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   
-  // 用于解决函数间循环依赖的refs
-  // const handleSeekToStepRef = useRef<(stepIndex: number, stepsArray?: DisplayStep[]) => void>();
-  // const playFromCurrentStepRef = useRef<(stepsArray?: DisplayStep[], currentIndex?: number) => void>();
+  const [userMessages, setUserMessages] = useState<UserMessage[]>([]);
   
   // 同步replayState的变化到ref
   useEffect(() => {
@@ -212,6 +217,7 @@ const ChatPage = () => {
     setPlans({});
     setActivePlanId('');
     setExpanded(false);
+    setUserMessages([]);
   }, []);
   
   // 添加终止任务的处理函数
@@ -532,9 +538,20 @@ const ChatPage = () => {
     const eventSource = apiService.createTaskEventSource(currentTaskId);
     eventSourceRef.current = eventSource;
     
-    // 添加连接建立和错误事件监听
+    // 添加连接建立事件监听
     eventSource.addEventListener('open', () => {
       console.log(`SSE connection opened for task ${currentTaskId}`);
+      
+      // 在连接成功建立后，添加用户消息
+      if (prompt.trim()) {
+        const userMessage: UserMessage = {
+          id: `user-${Date.now()}`,
+          content: prompt,
+          timestamp: Date.now()
+        };
+        setUserMessages(prev => [...prev, userMessage]);
+        setPrompt("")
+      }
     });
     
     eventSource.addEventListener('error', (error) => {
@@ -1041,6 +1058,15 @@ const ChatPage = () => {
                   ref={containerRef}
                   onScroll={handleScroll}
                 >
+                  <div className="mt-4">
+                    {userMessages.map((message) => (
+                      <div key={message.id} className={styles.userMessageContainer}>
+                        <div className={styles.userMessage}>
+                          {message.content}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                   <div className={`${styles.eventsContainer} my-4`}>
                     {events.length === 0 && !isReplaying ? (
                       <div className={styles.emptyState}>
@@ -1281,11 +1307,7 @@ export default ChatPage;
  */
 
 /**
-A recent news story in the U.S. has gained attention: a journalist accidentally joined a high-level Signal group chat among top White House officials. In the chat, they witnessed the U.S. leadership casually making the decision to launch an attack on Yemen’s Houthi forces, almost like a game.
+A recent U.S. news story went viral: a journalist accidentally joined a high-level White House Signal chat and saw top officials casually deciding to attack Yemen’s Houthi forces.
 
-Please research this event online, including any publicly disclosed chat logs, and create a simple web-based text adventure game. In the game, the player assumes the role of the journalist who was accidentally added to the group. They must pretend to be a government official and chat with other officials and President Trump, with the goal of preventing the next military action.
-
-The game should feature an interface similar to a chat app, with avatars, chat bubbles, and other typical UI elements. Create multiple characters based on real American political figures (with President Trump as the central character), and simulate their tones and styles in the group chat. At key points in the conversation, the player should be given multiple choices that affect the outcome. The chat should span multiple rounds, and the player must be given at least three opportunities to make decisions.
-
-After developing the project, compile it into static files and deploy it as a static website so that everyone can play the game.
+Research this event, including any leaked chat logs, and create a web-based text adventure game. The player, as the journalist, must impersonate an official in the chat to prevent the attack. The game should mimic a chat app with avatars and message bubbles, feature multiple political figures (Trump as the main one), and offer at least three decision points. Once developed, compile it into static files and deploy it publicly.
  */

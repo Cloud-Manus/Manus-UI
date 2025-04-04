@@ -110,7 +110,7 @@ export default function ToolDesc(
     }
     if (toolName === ToolName.FileSaver && toolDetails.file_saver) {
       const details: FileSaverDetails = toolDetails.file_saver;
-      setAction(details.mode === "a" ? "增加文件内容" : "保存文件");
+      setAction(details.mode === "a" ? "增加文件内容" : "写入文件");
       setObject(details.file_path);
       return;
     }

@@ -30,6 +30,7 @@
   .visualSection {
     flex: 1;
     overflow: hidden;
+    transition: width 0.3s ease;
   }
   
   .eventsCard {
@@ -106,5 +107,20 @@
     &:hover {
       border-color: var(--primary);
     }
+  }
+
+  .userMessageContainer {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 12px;
+  }
+
+  .userMessage {
+    background-color: var(--brand-6);
+    color: var(--dark-1);
+    border-radius: 12px 12px 0 12px;
+    padding: 10px 16px;
+    max-width: 500px;
+    word-break: break-word;
   }
 } 
