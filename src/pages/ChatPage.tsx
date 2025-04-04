@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, FormEvent, useRef, ChangeEvent, DragEvent } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { SendIcon, UploadIcon, DownloadIcon, StopCircleIcon, PlayIcon, PauseIcon, SkipBackIcon, SkipForwardIcon, X, ArrowDownToLine } from 'lucide-react';
+import { SendIcon, UploadIcon, DownloadIcon, PlayIcon, PauseIcon, SkipBackIcon, SkipForwardIcon, X, ArrowDownToLine } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Textarea } from '../components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
@@ -1242,6 +1242,19 @@ const ChatPage = () => {
               </Button>
             </div>
           )}
+          {(status === 'running' && !!currentTaskId && !isReplaying) && (
+            <div className="absolute z-10 top-0 left-0 w-full h-full flex justify-center items-center">
+              <Button 
+                variant="outline"
+                size="sm"
+                className="w-[200px] rounded-full shadow-sm"
+                onClick={handleTerminateTask}
+                disabled={isTerminating}
+              >
+                停止任务
+              </Button>
+            </div>
+          )}
 
           <Textarea
             placeholder="询问 OpenManus 任何问题..."
@@ -1260,22 +1273,12 @@ const ChatPage = () => {
             readOnly={isReplaying}
             rows={2}
           />
-          <div className="absolute flex gap-2 items-center bottom-2 right-4">
-            {status === 'running' ? !!currentTaskId && !isReplaying && (
-              <Button 
-                variant="outline"
-                size="sm"
-                onClick={handleTerminateTask}
-                disabled={isTerminating}
-                className="flex items-center gap-1"
-              >
-                <StopCircleIcon size={18} />
-              </Button>
-            ) : (
+          <div className="absolute flex gap-2 items-center bottom-4 right-4">
+            {status !== TaskState.running && (
               <Button
                 type="submit"
-                variant="outline"
-                size="sm"
+                variant="link"
+                size="icon"
                 disabled={
                   createTaskMutation.isPending ||
                   !prompt.trim() ||
@@ -1283,7 +1286,7 @@ const ChatPage = () => {
                   (status !== "" && !!currentTaskId)
                 }
               >
-                <SendIcon size={18} />
+                <SendIcon size={22} />
               </Button>
             )}
           </div>
@@ -1300,14 +1303,7 @@ export default ChatPage;
 // 写一个 web 端的贪食蛇游戏并作为静态网站部署上线
 
 /**
- * 最近美国有一件新闻比较火：一位记者误入了美国白宫高层的一个 Signal 群聊，然后在群内看到美国政府首脑们如儿戏一般地做出了对也门胡塞武装发动袭击的决定。
-请检索此事相关的互联网信息，如对外披露的群聊记录等，制作一款简单的 web 端文字冒险游戏，在该游戏中玩家扮演被拉入群聊的记者，在群内假扮政府官员与其他官员和总统 Trump 进行群聊，目标为阻止美国的下一步行动。
-要求拥有一个类似聊天 app 的界面，上面有头像、对话气泡等元素，创建多个美国政要的角色（其中总统特朗普为主角），模拟他们的语气在群里发言。设置当对话进行到一些关键节点时，给玩家提供几个选项，让玩家作出选择。群聊需要进行多轮对话，给玩家的选择次数不小于三次。
-我需要你完成开发后，将这个项目编译成静态文件，然后将静态文件部署到公开网络上供人访问和游玩。
- */
+The recent incident where a journalist accidentally joined a high-level White House Signal group—witnessing top U.S. officials, including President Trump, casually made descisions like striking Yemen’s Houthi forces—has sparked wide attention.
 
-/**
-A recent U.S. news story went viral: a journalist accidentally joined a high-level White House Signal chat and saw top officials casually deciding to attack Yemen’s Houthi forces.
-
-Research this event, including any leaked chat logs, and create a web-based text adventure game. The player, as the journalist, must impersonate an official in the chat to prevent the attack. The game should mimic a chat app with avatars and message bubbles, feature multiple political figures (Trump as the main one), and offer at least three decision points. Once developed, compile it into static files and deploy it publicly.
+Develop a simple interactive simulation that lets me role-play as the journalist in that Signal chat. I’d like a lightweight text-based web game. Search the web for their chat records and write satirical dialogue for these political figures to make the game as entertaining as possible.
  */
