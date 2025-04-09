@@ -1297,13 +1297,3 @@ const ChatPage = () => {
 };
 
 export default ChatPage; 
-
-// 写一个包含 Hello World 字样的 html 文件，并将其上传供人访问。
-
-// 写一个 web 端的贪食蛇游戏并作为静态网站部署上线
-
-/**
-The recent incident where a journalist accidentally joined a high-level White House Signal group—witnessing top U.S. officials, including President Trump, casually made descisions like striking Yemen’s Houthi forces—has sparked wide attention.
-
-Develop a simple interactive simulation that lets me role-play as the journalist in that Signal chat. I’d like a lightweight text-based web game. Search the web for their chat records and write satirical dialogue for these political figures to make the game as entertaining as possible.
- */

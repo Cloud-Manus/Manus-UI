@@ -1,0 +1,40 @@
+# Plan for User System Implementation
+
+## UI Components
+- [x] Create a narrow sidebar/toolbar component for the left side of the main interface
+- [x] Design and implement user avatar component for the bottom left corner
+- [x] Create login modal component with Google and GitHub authentication options
+- [x] Implement settings button that appears below avatar after login
+- [x] Design settings modal with tabs for model settings and search provider settings
+
+## Authentication
+- [x] Research and set up Google OAuth integration (implemented with mock login functionality)
+- [x] Research and set up GitHub OAuth integration (implemented with mock login functionality)
+- [x] Implement login state management
+- [x] Create utility functions to fetch and display user avatars from OAuth providers
+- [x] Add visual indicator (green dot) for avatar when user profile image is unavailable
+
+## Settings Management
+- [x] Create tabbed interface for settings modal (Model tab and Search Provider tab)
+- [x] Implement form for LLM settings (model name, Base URL, API Key)
+- [x] Create collapsible section for vision model settings with default value inheritance from LLM settings
+- [x] Implement dropdown for search provider selection (Tavily, Google, DuckDuckGo, Bing)
+- [x] Add conditional API Key field that appears when Tavily is selected
+
+## Data Storage
+- [x] Set up IndexedDB for local storage of user settings
+- [x] Create data models for user preferences
+- [x] Implement functions to save/retrieve user settings
+- [x] Add utilities to initialize default settings for new users
+
+## Integration
+- [x] Connect authentication state to UI components
+- [x] Link settings data to the backend API calls
+- [x] Ensure user settings persist between sessions
+- [x] Test the complete login and settings workflow
+
+## Edge Cases
+- [x] Handle authentication errors and retries
+- [x] Implement proper error handling for API key validation
+- [ ] Create fallback mechanisms when OAuth providers are unavailable
+- [x] Consider privacy and security best practices for storing API keys 
